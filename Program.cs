@@ -15,6 +15,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Aggiunge la gestione della sessione
 builder.Services.AddSession();
 
+builder.Services.AddScoped<UfficioSinistri.Services.TenantProvider>();
+
 builder.Services.AddHttpContextAccessor();
 
 // Aggiunge autenticazione cookie
@@ -40,6 +42,21 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseSession();
+
+app.Use(async (context, next) =>
+{
+    var tenant = context.RequestServices.GetRequiredService<UfficioSinistri.Services.TenantProvider>();
+
+    var aziendaStr = context.Session.GetString("Azienda");
+    if (!string.IsNullOrWhiteSpace(aziendaStr) && Guid.TryParse(aziendaStr, out var aziendaId))
+    {
+        tenant.AziendaId = aziendaId;
+    }
+
+    await next();
+});
+
+
 
 app.UseAuthorization();
 

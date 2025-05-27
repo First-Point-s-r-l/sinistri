@@ -1,4 +1,39 @@
 ﻿@page
 @model UfficioSinistri.Pages.ChiamateModel
 @{
+    ViewData["Title"] = "Elenco Sinistri";
 }
+
+<h1>@ViewData["Title"]</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>HistoryCallId</th>
+            <th>Nome Comunicato</th>
+            <th>Rubrica</th>
+            <th>Evento</th>
+            <th>Targa</th>
+            <th>Riassunto</th>
+            <th>Dettagli</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model.Chiamate)
+        {
+            <tr>
+                <td>@c.HistoryCallId</td>
+                <td>@c.NomeComunicato</td>
+                <td>@c.CorrispondenzaRubrica</td>
+                <td>@c.Evento</td>
+                <td>@c.Targa</td>
+                <td>@c.Riassunto</td>
+                <td>
+                    <a asp-page="/Chiamate/Details" asp-route-id="@c.Id" class="btn btn-sm btn-primary">
+                        🔍
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
