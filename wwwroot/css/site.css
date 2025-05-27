@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 0;
+}
+
+.main-container {
+    max-width: 900px;
+    margin: 30px auto;
+    background: #ffffff;
+    border-top: 10px solid #002b8c;
+    border-bottom: 10px solid #e60000;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.btn-firstpoint {
+    border: 2px solid #002b8c;
+    color: #002b8c;
+    background-color: #fff;
+    font-weight: 600;
+}
+
+    .btn-firstpoint:hover {
+        background-color: #002b8c;
+        color: #fff;
+    }
+
+.table > thead {
+    background-color: #002b8c;
+    color: white;
+}
