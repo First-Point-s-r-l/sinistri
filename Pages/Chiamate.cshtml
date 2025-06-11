@@ -6,6 +6,20 @@
 
 <h1>@ViewData["Title"]</h1>
 
+<p>
+    <a asp-page="./Chiamate"
+       asp-page-handler="ExportCsv"
+       class="btn btn-sm btn-outline-secondary">
+        📄 CSV (tutti)
+    </a>
+    <a asp-page="./Chiamate"
+       asp-page-handler="ExportPdf"
+       class="btn btn-sm btn-outline-secondary">
+        📑 PDF (tutti)
+    </a>
+</p>
+
+
 <table class="table table-striped">
     <thead>
         <tr>
@@ -19,7 +33,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var c in Model.Chiamate)
+        @foreach (var c in Model.Chiamate!)
         {
             <tr>
                 <td>@c.HistoryCallId</td>
@@ -29,8 +43,27 @@
                 <td>@c.Targa</td>
                 <td>@c.Riassunto</td>
                 <td>
-                    <a asp-page="/Chiamate/Details" asp-route-id="@c.Id" class="btn btn-sm btn-primary">
+                    <!-- Dettagli -->
+                    <a asp-page="/Chiamate/Details"
+                        asp-route-id="@c.Id"
+                        class="btn btn-sm btn-primary">
                         🔍
+                    </a>
+
+                    <!-- Export singolo CSV -->
+                    <a asp-page="./Chiamate"
+                       asp-page-handler="ExportCsv"
+                       asp-route-id="@c.Id"
+                       class="btn btn-sm btn-outline-secondary">
+                        CSV
+                    </a>
+
+                    <!-- Export singolo PDF -->
+                    <a asp-page="./Chiamate"
+                       asp-page-handler="ExportPdf"
+                       asp-route-id="@c.Id"
+                       class="btn btn-sm btn-outline-secondary">
+                        PDF
                     </a>
                 </td>
             </tr>

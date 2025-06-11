@@ -8,16 +8,18 @@ namespace UfficioSinistri.Models
         public Guid Id { get; set; }
 
         [Required]
-        public string HistoryCallId { get; set; }
+        public required string HistoryCallId { get; set; }
 
         [Required]
         public Guid AziendaId { get; set; }
 
-        public string NomeComunicato { get; set; }
-        public string CorrispondenzaRubrica { get; set; }
-        public string Targa { get; set; }
-        public string Testo { get; set; }
-        public string Evento { get; set; }
-        public string Riassunto { get; set; }
+        public required string Numero { get; set; }
+
+        public required string NomeComunicato { get; set; }
+        public required string CorrispondenzaRubrica { get; set; }
+        public required string Targa { get; set; }
+        public required string Testo { get; set; }
+        public required string Evento { get; set; }
+        public required string Riassunto { get; set; }
     }
 }

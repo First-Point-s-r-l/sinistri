@@ -1,9 +1,31 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using UfficioSinistri.Data;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//--------------------------------------------------------------------------------------------------
+// 1) Carica il certificato per Kestrel (HTTPS)
+//--------------------------------------------------------------------------------------------------
+var certThumbprint = "B627FB1093AF3CD052D21C219029A2155DFF8A84";
+using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+store.Open(OpenFlags.ReadOnly);
+var certs = store.Certificates.Find(X509FindType.FindByThumbprint, certThumbprint, validOnly: false);
+store.Close();
+
+if (certs.Count == 0)
+    throw new Exception("❌ Certificato non trovato.");
+
+var certificate = certs[0];
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(7285, listenOptions =>
+    {
+        listenOptions.UseHttps(certificate);
+    });
+});
 
 // Add services to the container.
 builder.Services.AddRazorPages();
