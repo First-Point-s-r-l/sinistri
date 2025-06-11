@@ -32,7 +32,7 @@ namespace UfficioSinistri.Pages
         }
 
         /// <summary>
-        /// Esportazione CSV (tutti o singolo, se passi id)
+        /// Esportazione CSV (tutti o singolo, se passi id) 
         /// </summary>
         public async Task<IActionResult> OnGetExportCsvAsync(Guid? id)
         {
