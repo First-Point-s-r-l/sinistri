@@ -4,36 +4,44 @@
     ViewData["Title"] = "Elenco Sinistri";
 }
 
-<h1>@ViewData["Title"]</h1>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>HistoryCallId</th>
-            <th>Nome Comunicato</th>
-            <th>Rubrica</th>
-            <th>Evento</th>
-            <th>Targa</th>
-            <th>Riassunto</th>
-            <th>Dettagli</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var c in Model.Chiamate)
-        {
-            <tr>
-                <td>@c.HistoryCallId</td>
-                <td>@c.NomeComunicato</td>
-                <td>@c.CorrispondenzaRubrica</td>
-                <td>@c.Evento</td>
-                <td>@c.Targa</td>
-                <td>@c.Riassunto</td>
-                <td>
-                    <a asp-page="/Chiamate/Details" asp-route-id="@c.Id" class="btn btn-sm btn-primary">
-                        🔍
-                    </a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="main-container">
+    <h1 class="mb-4">@ViewData["Title"]</h1>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>HistoryCallId</th>
+                    <th>Numero</th>
+                    <th>Nome Comunicato</th>
+                    <th>Rubrica</th>
+                    <th>Evento</th>
+                    <th>Targa</th>
+                    <th>Riassunto</th>
+                    <th>Dettagli</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Chiamate)
+                {
+                    <tr>
+                        <td class="nowrap">@c.HistoryCallId</td>
+                        <td class="nowrap">@c.Numero</td>
+                        <td>@c.NomeComunicato</td>
+                        <td>@c.CorrispondenzaRubrica</td>
+                        <td>@c.Evento</td>
+                        <td class="nowrap">@c.Targa</td>
+                        <td class="wrap">@c.Riassunto</td>
+                        <td class="text-center align-middle">
+                            <a asp-page="/Dettaglio" asp-route-id="@c.Id"
+                               class="btn btn-firstpoint btn-sm"
+                               style="padding: 0.3rem 0.7rem; min-width: 32px;">
+                                🔍
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

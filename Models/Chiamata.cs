@@ -13,6 +13,7 @@ namespace UfficioSinistri.Models
         [Required]
         public Guid AziendaId { get; set; }
 
+        public string Numero { get; set; }
         public string NomeComunicato { get; set; }
         public string CorrispondenzaRubrica { get; set; }
         public string Targa { get; set; }
