@@ -12,18 +12,11 @@ using Microsoft.AspNetCore.Http;
 //                                                                            "=^.^="
 namespace UfficioSinistri.Pages.Account
 {
-    public class LoginModel : PageModel
+    public class LoginModel(AppDbContext db, IConfiguration config) : PageModel
     {
 
-        private readonly AppDbContext _db;
-        private readonly IConfiguration _config;
-
-
-        public LoginModel(AppDbContext db, IConfiguration config)
-        {
-            _db = db;
-            _config = config;
-        }
+        private readonly AppDbContext _db = db;
+        private readonly IConfiguration _config = config;
 
         [BindProperty, Required(ErrorMessage = "Campo mail obbligatorio"), EmailAddress]
         public string Email { get; set; }

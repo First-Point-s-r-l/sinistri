@@ -9,14 +9,9 @@ using UfficioSinistri.Models;
 namespace UfficioSinistri.Pages
 {
     [Authorize]
-    public class DettaglioModel : PageModel
+    public class DettaglioModel(AppDbContext db) : PageModel
     {
-        private readonly AppDbContext _db;
-
-        public DettaglioModel(AppDbContext db)
-        {
-            _db = db;
-        }
+        private readonly AppDbContext _db = db;
 
         [BindProperty]
         public Chiamata Chiamata { get; set; }

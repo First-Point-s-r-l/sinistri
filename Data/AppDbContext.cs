@@ -4,15 +4,9 @@ using UfficioSinistri.Services;
 
 namespace UfficioSinistri.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext(DbContextOptions<AppDbContext> options, TenantProvider tenant) : DbContext(options)
     {
-        private readonly TenantProvider _tenant;
-
-        public AppDbContext(DbContextOptions<AppDbContext> options, TenantProvider tenant)
-            : base(options)
-        {
-            _tenant = tenant;
-        }
+        private readonly TenantProvider _tenant = tenant;
 
         public DbSet<Utente> Utenti { get; set; }
         public DbSet<Chiamata> Chiamate { get; set; }
