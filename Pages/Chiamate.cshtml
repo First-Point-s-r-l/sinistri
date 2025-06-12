@@ -5,67 +5,78 @@
 }
 
 
-<p>
-    <a asp-page="./Chiamate"
-       asp-page-handler="ExportCsv"
-       class="btn btn-sm btn-outline-secondary">
-        📄 CSV (tutti)
-    </a>
-    <a asp-page="./Chiamate"
-       asp-page-handler="ExportPdf"
-       class="btn btn-sm btn-outline-secondary">
-        📑 PDF (tutti)
-    </a>
-</p>
+<div class="main-container">
+    <h1 class="mb-4">@ViewData["Title"]</h1>
+    <div class="table-responsive">
+		<p>
+			Visualizza l'elenco delle chiamate registrate.
+			Puoi esportare i dati in formato CSV o PDF.
+		</p>
+        <p>
+            <a asp-page="./Chiamate"
+               asp-page-handler="ExportCsv"
+               class="btn btn-sm btn-outline-secondary">
+                📄 CSV (tutti)
+            </a>
+            <a asp-page="./Chiamate"
+               asp-page-handler="ExportPdf"
+               class="btn btn-sm btn-outline-secondary">
+                📑 PDF (tutti)
+            </a>
+        </p>
 
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>HistoryCallId</th>
-            <th>Nome Comunicato</th>
-            <th>Rubrica</th>
-            <th>Evento</th>
-            <th>Targa</th>
-            <th>Riassunto</th>
-            <th>Dettagli</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var c in Model.Chiamate!)
-        {
-            <tr>
-                <td>@c.HistoryCallId</td>
-                <td>@c.NomeComunicato</td>
-                <td>@c.CorrispondenzaRubrica</td>
-                <td>@c.Evento</td>
-                <td>@c.Targa</td>
-                <td>@c.Riassunto</td>
-                <td>
-                    <!-- Dettagli -->
-                    <a asp-page="/Chiamate/Details"
-                        asp-route-id="@c.Id"
-                        class="btn btn-sm btn-primary">
-                        🔍
-                    </a>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>HistoryCallId</th>
+                    <th>Nome Comunicato</th>
+                    <th>Rubrica</th>
+                    <th>Evento</th>
+                    <th>Targa</th>
+                    <th>Riassunto</th>
+                    <th>Dettagli</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Chiamate!)
+                {
+                    <tr>
+                        <td class="nowrap">@c.HistoryCallId</td>
+                        <td class="nowrap">@c.Numero</td>
+                        <td>@c.NomeComunicato</td>
+                        <td>@c.CorrispondenzaRubrica</td>
+                        <td>@c.Evento</td>
+                        <td class="nowrap">@c.Targa</td>
+                        <td class="wrap">@c.Riassunto</td>
+                        <td class="text-center align-middle">
 
-                    <!-- Export singolo CSV -->
-                    <a asp-page="./Chiamate"
-                       asp-page-handler="ExportCsv"
-                       asp-route-id="@c.Id"
-                       class="btn btn-sm btn-outline-secondary">
-                        CSV
-                    </a>
+							<!-- Dettaglio singolo -->
+                            <a asp-page="/Dettaglio" asp-route-id="@c.Id"
+                               class="btn btn-firstpoint btn-sm"
+                               style="padding: 0.3rem 0.7rem; min-width: 32px;">
+                                🔍
+                            </a>
 
-                    <!-- Export singolo PDF -->
-                    <a asp-page="./Chiamate"
-                       asp-page-handler="ExportPdf"
-                       asp-route-id="@c.Id"
-                       class="btn btn-sm btn-outline-secondary">
-                        PDF
-                    </a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                            <!-- Export singolo CSV -->
+                            <a asp-page="./Chiamate"
+                               asp-page-handler="ExportCsv"
+                               asp-route-id="@c.Id"
+                               class="btn btn-sm btn-outline-secondary">
+                                CSV
+                            </a>
+
+                            <!-- Export singolo PDF -->
+                            <a asp-page="./Chiamate"
+                               asp-page-handler="ExportPdf"
+                               asp-route-id="@c.Id"
+                               class="btn btn-sm btn-outline-secondary">
+                                PDF
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

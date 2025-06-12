@@ -7,6 +7,8 @@ using UfficioSinistri.Data;
 using UfficioSinistri.Models;
 
 using System.Text;
+using System.IO;
+
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -15,10 +17,11 @@ using QuestPDF.Infrastructure;
 namespace UfficioSinistri.Pages
 {
     [Authorize]
-    public class ChiamateModel(AppDbContext db, ILogger<ChiamateModel> logger) : PageModel
+    public class ChiamateModel(AppDbContext db, ILogger<ChiamateModel> logger, IWebHostEnvironment env) : PageModel
     {
         private readonly AppDbContext _db = db;
         private readonly ILogger<ChiamateModel> _logger = logger;
+        private readonly IWebHostEnvironment _env = env;
 
         // Lista di chiamate da visualizzare nella pagina
         public IList<Chiamata>? Chiamate { get; private set; } = [];
@@ -75,14 +78,14 @@ namespace UfficioSinistri.Pages
             }
         }
 
-
         /// <summary>
-        /// Esportazione PDF (lista o singolo)
+        /// Esportazione PDF (lista o singolo) con template “Dettaglio Sinistro” corretto
         /// </summary>
         public async Task<IActionResult> OnGetExportPdfAsync(Guid? id)
         {
-            _logger.LogInformation("Avvio export PDF. Id singolo: {SinistroId}", id);
             QuestPDF.Settings.License = LicenseType.Community;
+            _logger.LogInformation("Avvio export PDF. Id singolo: {SinistroId}", id);
+
             try
             {
                 // 1) Carico i dati
@@ -92,7 +95,6 @@ namespace UfficioSinistri.Pages
                     query = query.Where(c => c.Id == id);
                     _logger.LogDebug("Filtro per Id {SinistroId}", id);
                 }
-
                 var list = await query.ToListAsync();
 
                 // 2) Genero PDF
@@ -101,57 +103,108 @@ namespace UfficioSinistri.Pages
                     container.Page(page =>
                     {
                         page.Size(PageSizes.A4);
-                        page.Margin(20);
+                        page.Margin(0);
+                        page.PageColor(Colors.Grey.Lighten5);
 
-                        page.Header()
-                            .Text(id.HasValue ? $"Sinistro {id}" : "Elenco Sinistri")
-                            .FontSize(16).Bold();
+                        // Fascia blu in alto
+                        page.Background().Background(Colors.Blue.Darken2);
 
-                        page.Content().Table(table =>
+                        page.Content().Padding(20).Column(col =>
                         {
-                            table.ColumnsDefinition(cd =>
+                            // Titolo con padding sotto
+                            col.Item().Element(el =>
                             {
-                                cd.RelativeColumn(2);
-                                cd.RelativeColumn(3);
-                                cd.RelativeColumn(3);
-                                cd.RelativeColumn(3);
-                                cd.RelativeColumn(5);
+                                el.PaddingBottom(10)
+                                  .Text(id.HasValue
+                                     ? $"Dettaglio Sinistro {id}"
+                                     : "Elenco Sinistri")
+                                  .FontSize(24)
+                                  .FontColor(Colors.Blue.Darken2)
+                                  .Bold();
                             });
 
-                            table.Header(header =>
+                            // Scheda bianca
+                            col.Item().Element(card =>
                             {
-                                header.Cell().Text("Id").Bold();
-                                header.Cell().Text("HistoryCallId").Bold();
-                                header.Cell().Text("Numero").Bold();
-                                header.Cell().Text("Targa").Bold();
-                                header.Cell().Text("Riassunto").Bold();
-                            });
+                                card
+                                    .Background(Colors.White)
+                                    .Border(1)
+                                    //.BorderRadius(8)
+                                    .BorderColor(Colors.Grey.Lighten2)
+                                    .Padding(20)
+                                    .Column(fields =>
+                                    {
+                                        // Helper per il rendering di ciascun record
+                                        for (int i = 0; i < list.Count; i++)
+                                        {
+                                            var c = list[i];
 
-                            foreach (var c in list)
-                            {
-                                table.Cell().Text(c.Id.ToString());
-                                table.Cell().Text(c.HistoryCallId);
-                                table.Cell().Text(c.Numero ?? "");
-                                table.Cell().Text(c.Targa ?? "");
-                                table.Cell().Text(Truncate(c.Riassunto, 200));
-                            }
+                                            void AddField(string label, string value)
+                                            {
+                                                // riga label+valore
+                                                fields.Item().Row(r =>
+                                                {
+                                                    r.ConstantItem(150)
+                                                     .Text(label)
+                                                     .FontSize(12)
+                                                     .SemiBold()
+                                                     .FontColor(Colors.Blue.Darken2);
+
+                                                    r.RelativeItem()
+                                                     .Text(value ?? "")
+                                                     .FontSize(12)
+                                                     .FontColor(Colors.Black);
+                                                });
+
+                                                // linea di separazione
+                                                fields.Item()
+                                                      .Height(1)
+                                                      .Background(Colors.Grey.Lighten2);
+
+                                                // piccolo spazio
+                                                fields.Item()
+                                                      .Height(5);
+                                            }
+
+                                            AddField("HistoryCallId", c.HistoryCallId);
+                                            AddField("Numero", c.Numero);
+                                            AddField("Nome Comunicato", c.NomeComunicato);
+                                            AddField("Corrispondenza Rubrica", c.CorrispondenzaRubrica);
+                                            AddField("Targa", c.Targa);
+                                            AddField("Evento", c.Evento);
+                                            AddField("Riassunto", c.Riassunto);
+                                            AddField("Testo", Truncate(c.Testo, 500));
+
+                                            // spazio fra le schede se più di uno
+                                            if (i < list.Count - 1)
+                                            {
+                                                fields.Item().Height(20);
+                                            }
+                                        }
+
+                                    });
+                            });
                         });
 
-                        page.Footer()
-                            .AlignCenter()
-                            .Text(text =>
+                        // Footer con paginazione
+                        page.Footer().AlignCenter()
+                            .Text(txt =>
                             {
-                                text.Span("Pagina ");
-                                text.CurrentPageNumber();
-                                text.Span(" di ");
-                                text.TotalPages();
+                                txt.Span("Pagina ").FontSize(10);
+                                txt.CurrentPageNumber().FontSize(10);
+                                txt.Span(" di ").FontSize(10);
+                                txt.TotalPages().FontSize(10);
                             });
                     });
                 })
                 .GeneratePdf();
 
-                _logger.LogInformation("Export PDF completato. Pagine generate: {Pages}", /* non esposto da QuestPDF, ma conti righe */ list.Count);
-                return File(pdf, "application/pdf", id.HasValue ? $"Sinistro_{id}.pdf" : "Sinistri.pdf");
+                _logger.LogInformation("Export PDF completato ({Count} schede)", list.Count);
+                return File(
+                    pdf,
+                    "application/pdf",
+                    id.HasValue ? $"Sinistro_{id}.pdf" : "Sinistri.pdf"
+                );
             }
             catch (Exception ex)
             {
@@ -159,6 +212,7 @@ namespace UfficioSinistri.Pages
                 throw;
             }
         }
+
 
         // --- helper per troncare il testo nelle tabelle PDF ---
         private static string Truncate(string text, int maxLength)
