@@ -1,4 +1,4 @@
-﻿@page "/Dettaglio/{id:guid}"
+﻿@page "/Dettaglio"
 @model UfficioSinistri.Pages.DettaglioModel
 @{
     ViewData["Title"] = "Dettaglio Sinistro";
@@ -12,8 +12,12 @@
             <div class="col-label">HistoryCallId</div>
             <div class="col-value">@Model.Chiamata.HistoryCallId</div>
         </div>
+		<div class="row">
+			<div class="col-label">Numero</div>
+			<div class="col-value">@Model.Chiamata.Numero</div>
+		</div>
         <div class="row">
-            <div class="col-label">Nome Comunic.</div>
+            <div class="col-label">Nome Comunicato</div>
             <div class="col-value">@Model.Chiamata.NomeComunicato</div>
         </div>
         <div class="row">
@@ -29,12 +33,12 @@
             <div class="col-value">@Model.Chiamata.Evento</div>
         </div>
         <div class="row">
-            <div class="col-label">Testo</div>
-            <div class="col-value testo-lungo">@Model.Chiamata.Testo</div>
-        </div>
-        <div class="row">
             <div class="col-label">Riassunto</div>
             <div class="col-value">@Model.Chiamata.Riassunto</div>
+        </div>
+        <div class="row">
+            <div class="col-label">Testo</div>
+            <div class="col-value testo-lungo">@Model.Chiamata.Testo</div>
         </div>
     </div>
 
