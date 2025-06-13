@@ -78,10 +78,17 @@
                     <a href="/Dettaglio?id=${c.id}"
                         class="btn btn-firstpoint btn-sm"
                         style="padding: 0.3rem 0.7rem; min-width: 32px;">🔍</a>
+                    <!-- export list-level (OnGetExportCsvAsync/OnGetExportPdfAsync di ChiamateModel) -->
                     <a href="?handler=ExportCsv&${params.toString()}&id=${c.id}"
                         class="btn btn-sm btn-outline-secondary">CSV</a>
                     <a href="?handler=ExportPdf&${params.toString()}&id=${c.id}"
                         class="btn btn-sm btn-outline-secondary">PDF</a>
+
+                    <!-- export detail-level (OnGetExportCsvAsync/OnGetExportPdfAsync di DettaglioModel) -->
+                    <a href="/Dettaglio?handler=ExportCsv&id=${c.id}"
+                        class="btn btn-sm btn-outline-primary ms-1">CSV↓</a>
+                    <a href="/Dettaglio?handler=ExportPdf&id=${c.id}"
+                        class="btn btn-sm btn-outline-primary">PDF↓</a>
                 </td>
               </tr>
             `).join('');
