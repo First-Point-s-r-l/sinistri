@@ -142,37 +142,73 @@ namespace UfficioSinistri.Pages
         /// </summary>
         public async Task<IActionResult> OnGetExportCsv(Guid id)
         {
-            // ricarica il sinistro e gli allegati
+            // Ricarica il sinistro e gli allegati
             await OnGetAsync(id);
             if (Sinistro == null)
                 return NotFound();
 
             var sb = new StringBuilder();
-            sb.AppendLine("Field,Value");
-            void Row(string label, string? value) =>
-                sb.AppendLine($"{label},\"{(value?.Replace("\"", "\"\"") ?? "")}\"");
 
-            Row("HistoryCallId", Sinistro.HistoryCallId);
-            Row("Numero", Sinistro.Numero);
-            Row("Nome", Sinistro.Nome);
-            Row("Cognome", Sinistro.Cognome);
-            Row("Targa", Sinistro.Targa);
-            Row("DataChiamata", Sinistro.DataChiamata.ToString("o"));
-            Row("Gestita", Sinistro.Gestita.ToString());
-            Row("HasAllegati", Sinistro.HasAllegati.ToString());
-            Row("Trascrizione", Sinistro.Trascrizione);
-            Row("Riassunto", Sinistro.Riassunto);
-            Row("Evento", Sinistro.Evento);
-            Row("Assistenza", Sinistro.Assistenza);
-            Row("PropostaAI", Sinistro.PropostaAI);
-            Row("SelezioneUtente", Sinistro.SelezioneUtente);
+            // 1) Header principale
+            var headers = new[]
+            {
+                "HistoryCallId",
+                "Numero",
+                "Nome",
+                "Cognome",
+                "Targa",
+                "DataChiamata",
+                "Gestita",
+                "HasAllegati",
+                "Trascrizione",
+                "Riassunto",
+                "Evento",
+                "Assistenza",
+                "PropostaAI",
+                "SelezioneUtente"
+            };
+            sb.AppendLine(string.Join(',', headers));
 
-            // Allegati (solo metadata)
+            // 2) Valori principale (escape di eventuali virgolette)
+            string Esc(string? v) =>
+                string.IsNullOrEmpty(v)
+                    ? ""
+                    : $"\"{v.Replace("\"", "\"\"")}\"";
+
+            var values = new[]
+            {
+                Esc(Sinistro.HistoryCallId),
+                Esc(Sinistro.Numero),
+                Esc(Sinistro.Nome),
+                Esc(Sinistro.Cognome),
+                Esc(Sinistro.Targa),
+                Esc(Sinistro.DataChiamata.ToString("o")),
+                Sinistro.Gestita.ToString(),
+                Sinistro.HasAllegati.ToString(),
+                Esc(Sinistro.Trascrizione),
+                Esc(Sinistro.Riassunto),
+                Esc(Sinistro.Evento),
+                Esc(Sinistro.Assistenza),
+                Esc(Sinistro.PropostaAI),
+                Esc(Sinistro.SelezioneUtente)
+            };
+            sb.AppendLine(string.Join(',', values));
+
+            // 3) Riga vuota di separazione
             sb.AppendLine();
+
+            // 4) Allegati: header + dati
             sb.AppendLine("AllegatoId,NomeFile,Estensione,DataCaricamento");
             foreach (var a in Allegati)
             {
-                sb.AppendLine($"{a.AllegatoId},{a.NomeFile},{a.Estensione},{a.DataCaricamento:o}");
+                var line = new[]
+                {
+            a.AllegatoId.ToString(),
+            Esc(a.NomeFile),
+            Esc(a.Estensione),
+            a.DataCaricamento.ToString("o")
+        };
+                sb.AppendLine(string.Join(',', line));
             }
 
             var csvBytes = Encoding.UTF8.GetBytes(sb.ToString());
@@ -180,11 +216,13 @@ namespace UfficioSinistri.Pages
             return File(csvBytes, "text/csv", filename);
         }
 
+
         /// <summary>
         /// Export PDF del singolo sinistro
         /// </summary>
         public async Task<IActionResult> OnGetExportPdf(Guid id)
         {
+            // Ricarica i dati
             await OnGetAsync(id);
             if (Sinistro == null)
                 return NotFound();
@@ -197,66 +235,163 @@ namespace UfficioSinistri.Pages
                 doc.Page(page =>
                 {
                     page.Size(PageSizes.A4);
-                    page.Margin(20);
+                    page.Margin(30);
+                    page.PageColor(Colors.White);
+                    //page.PageColor(Colors.Grey.Lighten5);
 
-                    // Header
-                    page.Header().Row(r =>
+                    // ─────────────────────────────────────────────────────── Intestazione ──
+                    page.Header().PaddingBottom(10).Row(row =>
                     {
-                        r.ConstantItem(60).Height(40)
-                          .Image("wwwroot/images/LogoFP.png")
-                          .FitArea();
+                        // Logo
+                        row.ConstantItem(80).Height(40)
+                           .Background(Colors.White)
+                           .Image("wwwroot/images/LogoFP.png")
+                           .FitArea();
 
-                        r.RelativeItem().Column(c =>
+                        // Titolo + data
+                        row.RelativeItem().Column(col =>
                         {
-                            c.Item().Text($"Dettaglio Sinistro {Sinistro.TranscriptionResultId}")
-                              .FontSize(14).Bold();
-                            c.Item().Text($"Estratto: {estrazione}")
-                              .FontSize(8).FontColor(Colors.Grey.Darken1);
+                            col.Item().Text("Dettaglio Sinistro")
+                                     .FontSize(18).Bold().FontColor(Colors.Blue.Darken2);
+                            col.Item().Text($"ID: {Sinistro.TranscriptionResultId}")
+                                     .FontSize(10).FontColor(Colors.Grey.Darken2);
+                            col.Item().Text($"Estratto: {estrazione}")
+                                     .FontSize(8).Italic().FontColor(Colors.Grey.Lighten1);
                         });
                     });
 
-                    // Contenuto
-                    page.Content().Padding(10).Column(col =>
+                    // ─────────────────────────────────────────────────────────── Dettaglio ──
+                    page.Content().Padding(5).Table(table =>
                     {
-                        void Row(string label, string? value) =>
-                            col.Item().Row(r2 =>
-                            {
-                                r2.ConstantItem(150).Text(label).SemiBold();
-                                r2.RelativeItem().Text(value ?? "");
-                            });
-
-                        Row("HistoryCallId", Sinistro.HistoryCallId);
-                        Row("Numero", Sinistro.Numero);
-                        Row("Nome", Sinistro.Nome);
-                        Row("Cognome", Sinistro.Cognome);
-                        Row("Targa", Sinistro.Targa);
-                        Row("DataChiamata", Sinistro.DataChiamata.ToString("dd/MM/yyyy HH:mm"));
-                        Row("Gestita", Sinistro.Gestita ? "✓" : "No");
-                        Row("HasAllegati", Sinistro.HasAllegati ? "📎" : "No");
-                        Row("Trascrizione", Sinistro.Trascrizione);
-                        Row("Riassunto", Sinistro.Riassunto);
-                        Row("Evento", Sinistro.Evento);
-                        Row("Assistenza", Sinistro.Assistenza);
-                        Row("PropostaAI", Sinistro.PropostaAI);
-                        Row("SelezioneUtente", Sinistro.SelezioneUtente);
-
-                        if (Allegati.Count > 0)
+                        table.ColumnsDefinition(cd =>
                         {
-                            col.Item().PaddingTop(10).Text("Allegati:").SemiBold();
-                            foreach (var a in Allegati)
-                            {
-                                col.Item().Text($"• {a.NomeFile} ({a.Estensione}), caricato il {a.DataCaricamento:dd/MM/yyyy HH:mm}");
-                            }
+                            cd.ConstantColumn(150); // etichette
+                            cd.RelativeColumn();    // valori
+                        });
+
+                        // helper per riga compatta
+                        void AddRow(string label, string? value)
+                        {
+                            // cella etichetta
+                            var cell1 = table.Cell();
+                            cell1.Background(Colors.White)
+                                 .Border(1).BorderColor(Colors.Grey.Lighten2)
+                                 .Padding(5)
+                                 .Text(label)
+                                 .SemiBold()
+                                 .FontSize(10)
+                                 .FontColor(Colors.Blue.Darken2);
+
+                            // cella valore
+                            var cell2 = table.Cell();
+                            cell2.Background(Colors.White)
+                                 .Border(1).BorderColor(Colors.Grey.Lighten2)
+                                 .Padding(5)
+                                 .Text(value ?? "-")
+                                 .FontSize(10)
+                                 .FontColor(Colors.Black);
                         }
+
+                        // helper per campo multilinea
+                        void AddBigField(string label, string? value)
+                        {
+                            // etichetta
+                            var cell1 = table.Cell();
+                            cell1.Background(Colors.Grey.Lighten4)
+                                 .Border(1).BorderColor(Colors.Grey.Lighten2)
+                                 .Padding(5)
+                                 .Text(label)
+                                 .SemiBold()
+                                 .FontSize(10)
+                                 .FontColor(Colors.Blue.Darken2);
+
+                            // contenuto multilinea
+                            var cell2 = table.Cell();
+                            cell2.Background(Colors.White)
+                                 .Border(1).BorderColor(Colors.Grey.Lighten2)
+                                 .Padding(5)
+                                 .Column(col =>
+                                 {
+                                     col.Spacing(2);
+                                     foreach (var line in (value ?? "-").Split('\n'))
+                                     {
+                                         col.Item()
+                                            .Text(line)
+                                            .FontSize(9)
+                                            .FontColor(Colors.Black);
+                                     }
+                                 });
+                        }
+
+                        // campi semplici
+                        AddRow("HistoryCallId", Sinistro.HistoryCallId);
+                        AddRow("Numero", Sinistro.Numero);
+                        AddRow("Nome", Sinistro.Nome);
+                        AddRow("Cognome", Sinistro.Cognome);
+                        AddRow("Targa", Sinistro.Targa);
+                        AddRow("Data Chiamata", Sinistro.DataChiamata.ToString("dd/MM/yyyy HH:mm"));
+                        AddRow("Gestita", Sinistro.Gestita ? "✓" : "✖");
+                        AddRow("Allegati", Sinistro.HasAllegati ? "📎" : "—");
+
+                        // campi multilinea
+                        AddBigField("Trascrizione", Sinistro.Trascrizione);
+                        AddBigField("Riassunto", Sinistro.Riassunto);
+                        AddBigField("Evento", Sinistro.Evento);
+                        AddBigField("Assistenza", Sinistro.Assistenza);
+                        AddBigField("Proposta AI", Sinistro.PropostaAI);
+                        AddBigField("Selezione Utente", Sinistro.SelezioneUtente);
                     });
 
-                    // Footer
-                    page.Footer().AlignCenter().Text(f =>
+                    // ────────────────────────────────────────────────────────── Allegati ──
+                    if (Allegati.Count > 0)
                     {
-                        f.Span("Pagina ").FontSize(8);
-                        f.CurrentPageNumber().FontSize(8);
-                        f.Span(" di ").FontSize(8);
-                        f.TotalPages().FontSize(8);
+                        page.Content().PaddingTop(10).Text("Allegati").SemiBold().FontSize(12);
+
+                        page.Content().Table(tbl =>
+                        {
+                            tbl.ColumnsDefinition(cd =>
+                            {
+                                cd.ConstantColumn(20);   // icona
+                                cd.RelativeColumn(3);    // nome
+                                cd.RelativeColumn(2);    // estensione
+                                cd.RelativeColumn(2);    // data
+                            });
+
+                            // header
+                            tbl.Header(header =>
+                            {
+                                header.Cell().Padding(4).Background(Colors.Blue.Darken2)
+                                      .Text(" ").FontColor(Colors.White);
+                                header.Cell().Padding(4).Background(Colors.Blue.Darken2)
+                                      .Text("Nome File").FontColor(Colors.White).SemiBold();
+                                header.Cell().Padding(4).Background(Colors.Blue.Darken2)
+                                      .Text("Estensione").FontColor(Colors.White).SemiBold();
+                                header.Cell().Padding(4).Background(Colors.Blue.Darken2)
+                                      .Text("Data").FontColor(Colors.White).SemiBold();
+                            });
+
+                            // righe dati
+                            foreach (var a in Allegati)
+                            {
+                                tbl.Cell().Padding(4).Text("📎");
+                                tbl.Cell().Padding(4).Text(a.NomeFile).FontSize(9);
+                                tbl.Cell().Padding(4).Text(a.Estensione ?? "-").FontSize(9);
+                                tbl.Cell().Padding(4)
+                                   .Text(a.DataCaricamento.ToString("dd/MM/yyyy HH:mm"))
+                                   .FontSize(9);
+                            }
+                        });
+                    }
+
+                    // ───────────────────────────────────────────────────────────── Footer ──
+                    page.Footer().AlignCenter().Text(txt =>
+                    {
+                        txt.Span("Pagina ").FontSize(8);
+                        txt.CurrentPageNumber().FontSize(8);
+                        txt.Span(" di ").FontSize(8);
+                        txt.TotalPages().FontSize(8);
+                        txt.Span($"  •  Generated {DateTime.Now:dd/MM/yyyy HH:mm}")
+                           .FontSize(7).FontColor(Colors.Grey.Lighten1);
                     });
                 });
             })
@@ -265,5 +400,6 @@ namespace UfficioSinistri.Pages
             var filename = $"Sinistro_{Sinistro.TranscriptionResultId}.pdf";
             return File(pdf, "application/pdf", filename);
         }
+
     }
 }
