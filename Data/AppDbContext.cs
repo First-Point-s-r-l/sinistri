@@ -9,7 +9,7 @@ namespace UfficioSinistri.Data
         private readonly TenantProvider _tenant = tenant;
 
         public DbSet<Utente> Utenti { get; set; }
-        public DbSet<Chiamata> Chiamate { get; set; }
+        public DbSet<Sinistro> Sinistri { get; set; }
 
         public DbSet<Allegato> Allegati { get; set; }
 
@@ -17,11 +17,22 @@ namespace UfficioSinistri.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Filtro globale su AziendaId per chiamate e allegati
-            modelBuilder.Entity<Chiamata>()
-                .HasQueryFilter(c =>
+            // Definire la chiave primaria per Sinistro
+            modelBuilder.Entity<Sinistro>()
+                .HasKey(s => s.TranscriptionResultId);
+
+            // Relazione 1-N Sinistro-Allegati
+            modelBuilder.Entity<Allegato>()
+                .HasOne(a => a.Sinistro)
+                .WithMany(s => s.Allegati)
+                .HasForeignKey(a => a.SinistroId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Filtro globale su AziendaId per Sinistri e Allegati
+            modelBuilder.Entity<Sinistro>()
+                .HasQueryFilter(s =>
                     _tenant.AziendaId == Guid.Empty
-                    || c.AziendaId == _tenant.AziendaId);
+                    || s.AziendaId == _tenant.AziendaId);
 
             modelBuilder.Entity<Allegato>()
                 .HasQueryFilter(a =>

@@ -108,7 +108,7 @@ namespace UfficioSinistri.Pages.Account
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            return RedirectToPage("/Chiamate");
+            return RedirectToPage("/Sinistri");
         }
 
         private string HashPassword(string password)

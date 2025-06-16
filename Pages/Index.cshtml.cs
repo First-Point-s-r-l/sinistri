@@ -12,7 +12,7 @@ namespace UfficioSinistri.Pages
             if (User.Identity.IsAuthenticated)
             {
                 // Se sei loggato ➔ vai subito su Chiamate
-                return RedirectToPage("/Chiamate");
+                return RedirectToPage("/Sinistri");
             }
             else
             {

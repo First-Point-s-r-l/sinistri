@@ -1,0 +1,145 @@
+﻿@page
+@model UfficioSinistri.Pages.SinistriModel
+@{
+    ViewData["Title"] = "Elenco Sinistri";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<!-- filtri -->
+<div class="row g-2 mb-3">
+    <div class="col-md-2">
+        <input id="f-numero" class="form-control" placeholder="Numero…" />
+    </div>
+    <div class="col-md-2">
+        <input id="f-targa" class="form-control" placeholder="Targa…" />
+    </div>
+    <div class="col-md-3">
+        <input id="f-termini" class="form-control" placeholder="Nome/Cognome/Riassunto/Evento…" />
+    </div>
+    <div class="col-md-2">
+        <input id="f-datefrom" type="date" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <input id="f-dateto" type="date" class="form-control" />
+    </div>
+</div>
+
+<p>
+    <button id="export-csv" class="btn btn-outline-secondary btn-sm">Esporta CSV</button>
+    <button id="export-pdf" class="btn btn-outline-secondary btn-sm">Esporta PDF</button>
+</p>
+
+<table class="table table-sm table-bordered">
+    <thead>
+        <tr>
+            <th>HistoryCallId</th>
+            <th>Numero</th>
+            <th>Nome</th>
+            <th>Cognome</th>
+            <th>Targa</th>
+            <th>Evento</th>
+            <th>Riassunto</th>
+            <th>Data</th>
+            <th>Gestita</th>
+            <th>Allegati</th>
+            <th>Azioni</th>
+        </tr>
+    </thead>
+    <tbody id="sinistri-tbody">
+        <!-- popolato da JS -->
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        (function() {
+            const inputs = {
+                Numero:   document.getElementById('f-numero'),
+                Targa:    document.getElementById('f-targa'),
+                Termini:  document.getElementById('f-termini'),
+                DataFrom: document.getElementById('f-datefrom'),
+                DataTo:   document.getElementById('f-dateto')
+            };
+
+            let timer;
+            async function refreshTable() {
+                const params = new URLSearchParams({ handler: 'Filter' });
+                Object.entries(inputs).forEach(([k, el]) => {
+                    if (el.value) params.set('Filter' + k, el.value);
+                });
+
+                const resp = await fetch(`?${params.toString()}`);
+                const data = await resp.json();
+                const tbody = document.getElementById('sinistri-tbody');
+
+                tbody.innerHTML = data.map(s => `
+                    <tr>
+                        <td>${s.historyCallId}</td>
+                        <td>${s.numero || ''}</td>
+                        <td>${s.nome || ''}</td>
+                        <td>${s.cognome || ''}</td>
+                        <td>${s.targa || ''}</td>
+                        <td>${s.evento || ''}</td>
+                        <td>${s.riassunto || ''}</td>
+                        <td>${new Date(s.data).toLocaleString()}</td>
+                        <td>
+                            ${s.gestita
+                            ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                            : '<i class="bi bi-x-circle-fill text-danger"></i>'}
+                        </td>
+                        <td>
+                            ${s.hasAllegati
+                            ? '<i class="bi bi-paperclip"></i>'
+                            : '<i class="bi bi-dash-lg text-muted"></i>'}
+                        </td>
+                        <td>
+                            <!-- Dettaglio -->
+                            <a href="/SinistroDetail?id=${s.id}"
+                               class="btn btn-firstpoint btn-sm me-1">🔍</a>
+
+                            <!-- Export list-level -->
+                            <a href="?handler=ExportCsv&${params.toString()}&id=${s.id}"
+                               class="btn btn-sm btn-outline-secondary me-1">CSV</a>
+                            <a href="?handler=ExportPdf&${params.toString()}&id=${s.id}"
+                               class="btn btn-sm btn-outline-secondary me-1">PDF</a>
+
+                            <!-- Export detail-level -->
+                            <a href="/SinistroDetail?handler=ExportCsv&id=${s.id}"
+                               class="btn btn-sm btn-outline-primary me-1">CSV↓</a>
+                            <a href="/SinistroDetail?handler=ExportPdf&id=${s.id}"
+                               class="btn btn-sm btn-outline-primary">PDF↓</a>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // debounce sui filtri
+            Object.values(inputs).forEach(el => {
+                el.addEventListener('input', () => {
+                    clearTimeout(timer);
+                    timer = setTimeout(refreshTable, 300);
+                });
+            });
+
+            // pulsanti di export globali
+            document.getElementById('export-csv').addEventListener('click', () => {
+                const qs = new URLSearchParams({ handler: 'ExportCsv' });
+                Object.entries(inputs).forEach(([k, el]) => {
+                    if (el.value) qs.set('Filter' + k, el.value);
+                });
+                window.location.href = `?${qs}`;
+            });
+            document.getElementById('export-pdf').addEventListener('click', () => {
+                const qs = new URLSearchParams({ handler: 'ExportPdf' });
+                Object.entries(inputs).forEach(([k, el]) => {
+                    if (el.value) qs.set('Filter' + k, el.value);
+                });
+                window.location.href = `?${qs}`;
+            });
+
+            // primo caricamento
+            refreshTable();
+        })();
+    </script>
+}
