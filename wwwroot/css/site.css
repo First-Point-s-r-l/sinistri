@@ -20,7 +20,7 @@ body {
 
 /* Container generale */
 .main-container {
-    max-width: 900px;
+    max-width: 1200px;
     margin: 2rem auto;
     background: var(--card-bg);
     border-top: 8px solid var(--primary-color);
@@ -205,4 +205,69 @@ a {
     .btn-outline-secondary:hover {
         background-color: var(--secondary-color);
         color: #fff;
+    }
+
+.table-responsive {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.table {
+    table-layout: auto; /* o fixed se preferisci colonne uniformi */
+    width: 100% !important;
+}
+
+
+
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main[role="main"] {
+    flex: 1;
+}
+
+footer {
+    flex-shrink: 0;
+}
+
+
+
+/* permetti wrap testo */
+.table td.wrap,
+.table th.wrap {
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* font più compatto in tabella */
+.table {
+    font-size: 0.9rem;
+}
+
+/* cella azioni: due righe e padding */
+.actions-cell > div {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.actions-cell .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+/* miglioro la griglia cards */
+#cards-view .card {
+    border-radius: 0.75rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    #cards-view .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
     }

@@ -4,152 +4,184 @@
     ViewData["Title"] = "Elenco Sinistri";
 }
 
-<h1>@ViewData["Title"]</h1>
+<h1 class="mb-4">@ViewData["Title"]</h1>
 
-<!-- filtri -->
+<!-- FILTRI -->
 <div class="row g-2 mb-3">
-    <div class="col-md-2">
-        <input id="f-numero" class="form-control" placeholder="Numero…" />
-    </div>
-    <div class="col-md-2">
-        <input id="f-targa" class="form-control" placeholder="Targa…" />
-    </div>
-    <div class="col-md-3">
-        <input id="f-termini" class="form-control" placeholder="Nome/Cognome/Riassunto/Evento…" />
-    </div>
-    <div class="col-md-2">
-        <input id="f-datefrom" type="date" class="form-control" />
-    </div>
-    <div class="col-md-2">
-        <input id="f-dateto" type="date" class="form-control" />
-    </div>
+    <div class="col-md-2"><input id="f-numero" class="form-control" placeholder="Numero…" /></div>
+    <div class="col-md-2"><input id="f-targa" class="form-control" placeholder="Targa…" /></div>
+    <div class="col-md-3"><input id="f-termini" class="form-control" placeholder="Nome/Cognome/Riassunto/Evento…" /></div>
+    <div class="col-md-2"><input id="f-datefrom" type="date" class="form-control" /></div>
+    <div class="col-md-2"><input id="f-dateto" type="date" class="form-control" /></div>
 </div>
 
-<p>
-    <button id="export-csv" class="btn btn-outline-secondary btn-sm">Esporta CSV</button>
+<!-- EXPORT -->
+<p class="mb-3">
+    <button id="export-csv" class="btn btn-outline-secondary btn-sm me-1">Esporta CSV</button>
     <button id="export-pdf" class="btn btn-outline-secondary btn-sm">Esporta PDF</button>
 </p>
 
-<table class="table table-sm table-bordered">
-    <thead>
-        <tr>
-            <th>HistoryCallId</th>
-            <th>Numero</th>
-            <th>Nome</th>
-            <th>Cognome</th>
-            <th>Targa</th>
-            <th>Evento</th>
-            <th>Riassunto</th>
-            <th>Data</th>
-            <th>Gestita</th>
-            <th>Allegati</th>
-            <th>Azioni</th>
-        </tr>
-    </thead>
-    <tbody id="sinistri-tbody">
-        <!-- popolato da JS -->
-    </tbody>
-</table>
+<!-- TOGGLE VISTA -->
+<p class="mb-4">
+    <button id="view-table" class="btn btn-primary btn-sm me-1 active">
+        <i class="bi bi-table"></i> Tabella
+    </button>
+    <button id="view-cards" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-grid-3x3-gap-fill"></i> Cards
+    </button>
+</p>
+
+<!-- VISTA TABELLA -->
+<div id="table-view" class="table-responsive mb-5">
+    <table class="table table-hover align-middle">
+        <thead class="table">
+            <tr>
+                @*<th>HistoryCallId</th>*@
+                <th>Numero</th>
+                <th>Nome</th>
+                <th>Cognome</th>
+                <th>Targa</th>
+                <th class="wrap">Evento</th>
+                @*<th class="wrap">Riassunto</th>*@
+                <th>Data</th>
+                <th>Gestita</th>
+                <th>Allegati</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody id="sinistri-tbody">
+            <!-- popolate da JS -->
+        </tbody>
+    </table>
+</div>
+
+<!-- VISTA CARDS -->
+<div id="cards-view" class="row row-cols-1 row-cols-md-2 g-3 mb-5" style="display:none">
+    <!-- popolate da JS -->
+</div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@7/dist/browser/signalr.min.js"></script>
     <script>
-        (function() {
-          // 1) Definizione di refreshTable sul window
-          window.refreshTable = async function() {
-            console.log("🔄 refreshTable invocato");
-            const inputs = {
-              Numero:   document.getElementById('f-numero').value,
-              Targa:    document.getElementById('f-targa').value,
-              Termini:  document.getElementById('f-termini').value,
-              DataFrom: document.getElementById('f-datefrom').value,
-              DataTo:   document.getElementById('f-dateto').value
+        (function(){
+            // conserva ultimo dataset
+            window._lastData = [];
+
+            // 1) carica e popola
+            window.refreshTable = async function(){
+                const inputs = {
+                    Numero:   $('#f-numero').val(),
+                    Targa:    $('#f-targa').val(),
+                    Termini:  $('#f-termini').val(),
+                    DataFrom: $('#f-datefrom').val(),
+                    DataTo:   $('#f-dateto').val()
+                };
+                const qs = new URLSearchParams({ handler:'Filter' });
+                Object.entries(inputs).forEach(([k,v])=>v && qs.set('Filter'+k,v));
+
+                const resp = await fetch('?'+qs);
+                const data = await resp.json();
+                window._lastData = data;
+
+                // tabella
+                $('#sinistri-tbody').html(data.map(s=>`
+                    <tr>
+                      @*<td>${s.historyCallId||''}</td>*@
+                      <td>${s.numero||''}</td>
+                      <td>${s.nome||''}</td>
+                      <td>${s.cognome||''}</td>
+                      <td>${s.targa||''}</td>
+                      <td class="wrap">${s.evento||''}</td>
+                      @*<td class="wrap">${s.riassunto||''}</td>*@
+                      <td>${new Date(s.data).toLocaleString()}</td>
+                      <td class="text-center">
+                        ${s.gestita
+                          ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                          : '<i class="bi bi-x-circle-fill text-danger"></i>'}
+                      </td>
+                      <td class="text-center">
+                        ${s.hasAllegati
+                          ? '<i class="bi bi-paperclip"></i>'
+                          : '<i class="bi bi-dash-lg text-muted"></i>'}
+                      </td>
+                      <td class="actions-cell">
+                        <div><a href="/SinistroDetail?id=${s.id}"               class="btn btn-sm btn-primary mb-1 w-100">🔍 Dettaglio</a></div>
+                        <div class="d-flex gap-1 justify-content-center">
+                            @*<a href="?handler=ExportCsv&${qs}&id=${s.id}"       class="btn btn-sm btn-outline-secondary">CSV</a>
+                            <a href="?handler=ExportPdf&${qs}&id=${s.id}"       class="btn btn-sm btn-outline-secondary">PDF</a>*@
+                            <a href="/SinistroDetail?handler=ExportCsv&id=${s.id}"  class="btn btn-sm btn-outline-secondary me-1">CSV↓</a>
+                            <a href="/SinistroDetail?handler=ExportPdf&id=${s.id}"  class="btn btn-sm btn-outline-secondary">PDF↓</a>
+                        </div>
+                      </td>
+                    </tr>
+                `).join(''));
+
+                // cards (se attiva)
+                if($('#cards-view').is(':visible')) renderCards(data);
             };
-            const params = new URLSearchParams({ handler: 'Filter' });
-            for (const [k,v] of Object.entries(inputs)) {
-              if (v) params.set('Filter'+k, v);
+
+            // 2) crea cards
+            function renderCards(data){
+                $('#cards-view').html(data.map(s=>`
+                    <div class="col">
+                      <div class="card h-100 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                          <h5 class="card-title text-truncate">${s.numero||('#'+s.historyCallId.slice(0,8))}</h5>
+                          <h6 class="card-subtitle mb-2 text-muted">${s.nome||''} ${s.cognome||''}</h6>
+                          <p class="card-text text-truncate">${s.riassunto||s.evento||''}</p>
+                          <div class="mt-auto">
+                            <a href="/SinistroDetail?id=${s.id}" class="btn btn-firstpoint btn-sm w-100">
+                              Dettaglio
+                            </a>
+                          </div>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between small text-muted">
+                          <span>${new Date(s.data).toLocaleDateString()}</span>
+                          <span>
+                            ${s.gestita
+                              ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                              : '<i class="bi bi-x-circle-fill text-danger"></i>'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                `).join(''));
             }
-            const resp = await fetch(`?${params}`);
-            const data = await resp.json();
-            document.getElementById('sinistri-tbody').innerHTML =
-              data.map(s => `
-                <tr>
-                  <td>${s.historyCallId}</td>
-                  <td>${s.numero||''}</td>
-                  <td>${s.nome||''}</td>
-                  <td>${s.cognome||''}</td>
-                  <td>${s.targa||''}</td>
-                  <td>${s.evento||''}</td>
-                  <td>${s.riassunto||''}</td>
-                  <td>${new Date(s.data).toLocaleString()}</td>
-                  <td>${s.gestita
-                    ? '<i class="bi bi-check-circle-fill text-success"></i>'
-                    : '<i class="bi bi-x-circle-fill text-danger"></i>'}</td>
-                  <td>${s.hasAllegati
-                    ? '<i class="bi bi-paperclip"></i>'
-                    : '<i class="bi bi-dash-lg text-muted"></i>'}</td>
-                  <td>
-                    <a href="/SinistroDetail?id=${s.id}"
-                       class="btn btn-firstpoint btn-sm me-1">🔍</a>
-                    <a href="?handler=ExportCsv&${params}&id=${s.id}"
-                       class="btn btn-sm btn-outline-secondary me-1">CSV</a>
-                    <a href="?handler=ExportPdf&${params}&id=${s.id}"
-                       class="btn btn-sm btn-outline-secondary me-1">PDF</a>
-                    <a href="/SinistroDetail?handler=ExportCsv&id=${s.id}"
-                       class="btn btn-sm btn-outline-primary me-1">CSV↓</a>
-                    <a href="/SinistroDetail?handler=ExportPdf&id=${s.id}"
-                       class="btn btn-sm btn-outline-primary">PDF↓</a>
-                  </td>
-                </tr>
-              `).join('');
-          };
 
-          // 2) Debounce sui filtri
-          ['f-numero','f-targa','f-termini','f-datefrom','f-dateto']
-            .forEach(id => document.getElementById(id)
-              .addEventListener('input', () => {
+            // 3) debounce filtri
+            ['#f-numero','#f-targa','#f-termini','#f-datefrom','#f-dateto']
+              .forEach(sel => $(sel).on('input',()=>{
                 clearTimeout(window._timer);
-                window._timer = setTimeout(window.refreshTable, 300);
-              })
-            );
+                window._timer = setTimeout(window.refreshTable,300);
+            }));
 
-          // 3) Pulsanti export globali
-          document.getElementById('export-csv').onclick = () => {
-            const qs = new URLSearchParams({ handler:'ExportCsv' });
-            ['Numero','Targa','Termini','DataFrom','DataTo']
-              .forEach(k => {
-                const v = document.getElementById('f-'+k.toLowerCase()).value;
-                if (v) qs.set('Filter'+k, v);
-              });
-            window.location.href = `?${qs}`;
-          };
-          document.getElementById('export-pdf').onclick = () => {
-            const qs = new URLSearchParams({ handler:'ExportPdf' });
-            ['Numero','Targa','Termini','DataFrom','DataTo']
-              .forEach(k => {
-                const v = document.getElementById('f-'+k.toLowerCase()).value;
-                if (v) qs.set('Filter'+k, v);
-              });
-            window.location.href = `?${qs}`;
-          };
+            // 4) export
+            $('#export-csv').click(()=> window.location='?'+(new URLSearchParams({handler:'ExportCsv',...Object.fromEntries(new URLSearchParams(location.search))})));
+            $('#export-pdf').click(()=> window.location='?'+(new URLSearchParams({handler:'ExportPdf',...Object.fromEntries(new URLSearchParams(location.search))})));
 
-          // 4) SignalR: ascolta e richiama refreshTable
-          const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/hubs/sinistri")
-            .withAutomaticReconnect()
-            .build();
+            // 5) toggle vista
+            $('#view-table').click(()=>{
+                $('#cards-view').hide();
+                $('#table-view').show();
+                $('#view-table').addClass('active').removeClass('btn-outline-primary').addClass('btn-primary');
+                $('#view-cards').removeClass('active btn-primary').addClass('btn-outline-primary');
+            });
+            $('#view-cards').click(()=>{
+                $('#table-view').hide();
+                $('#cards-view').show();
+                $('#view-cards').addClass('active').removeClass('btn-outline-primary').addClass('btn-primary');
+                $('#view-table').removeClass('active btn-primary').addClass('btn-outline-primary');
+                renderCards(window._lastData);
+            });
 
-          connection.on("SinistriAggiornati", () => {
-            console.log("SinistriAggiornati → aggiorno tabella");
+            // 6) SignalR
+            const conn = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/sinistri").withAutomaticReconnect().build();
+            conn.on("SinistriAggiornati",()=> window.refreshTable());
+            conn.start().catch(console.error);
+
+            // init
             window.refreshTable();
-          });
-
-          connection.start()
-            .then(() => console.log("SignalR connesso"))
-            .catch(err => console.error(err));
-
-          // caricamento iniziale
-          window.refreshTable();
         })();
     </script>
 }

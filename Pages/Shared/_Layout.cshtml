@@ -51,7 +51,7 @@
 		}
 	</style>
 </head>
-<body>
+<body class="d-flex flex-column h-100">
 	<header>
 		<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
 			<div class="container-fluid">
@@ -125,16 +125,18 @@
 
 
 	<div class="container my-4 animate__animated animate__fadeIn">
-		<main role="main">@RenderBody()</main>
+		<main role="main" class="flex-fill">@RenderBody()</main>
 	</div>
 
-	<footer class="footer text-center border-top">
-		<div class="container">
-			<small class="text-muted">
-				© 2025 Ufficio Sinistri • <a asp-page="/Privacy">Privacy</a>
-			</small>
-		</div>
-	</footer>
+	@* <div class="container">
+		<footer class="footer text-center border-top text-muted">
+			<div class="container">
+				<small class="text-muted">
+					© 2025 Ufficio Sinistri • <a asp-page="/Privacy">Privacy</a>
+				</small>
+			</div>
+		</footer>
+	</div> *@
 
 	<!-- Scripts di base -->
 	<script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -143,4 +145,5 @@
 
 	@RenderSection("Scripts", required: false)
 </body>
+
 </html>
