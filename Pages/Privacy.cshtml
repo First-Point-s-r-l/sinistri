@@ -1,8 +1,61 @@
 ﻿@page
 @model PrivacyModel
 @{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Informativa sulla Privacy";
+    Layout = "_Layout";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="main-container">
+    <!-- Logo -->
+    <div class="text-center mb-4">
+        <img src="~/images/LogoFP.png" alt="Logo FirstPoint" style="max-height:80px;" />
+    </div>
+
+    <h1 class="mb-3">@ViewData["Title"]</h1>
+
+    <p>
+        La presente informativa descrive le modalità di raccolta, utilizzo e protezione dei dati personali
+        degli utenti che interagiscono con il nostro sito e i nostri servizi.
+    </p>
+
+    <h2>1. Titolare del trattamento</h2>
+    <p>
+        FirstPoint S.r.l. – Via Esempio, 123 – 00100 Roma (RM)
+        Email: privacy@firstpoint.it
+    </p>
+
+    <h2>2. Dati raccolti</h2>
+    <ul>
+        <li>Dati di navigazione (es. indirizzi IP, pagine visitate, orari, ecc.)</li>
+        <li>Dati forniti volontariamente (es. nominativo, email, recapito telefonico)</li>
+        <li>Dati tecnici relativi al dispositivo e al browser</li>
+    </ul>
+
+    <h2>3. Finalità e base giuridica</h2>
+    <p>
+        I dati vengono trattati per:
+    </p>
+    <ul>
+        <li>Erogazione del servizio richiesto;</li>
+        <li>Adempimenti normativi;</li>
+        <li>Invio di comunicazioni promozionali (previo consenso).</li>
+    </ul>
+
+    <h2>4. Modalità di trattamento</h2>
+    <p>
+        Il trattamento viene effettuato con strumenti manuali, informatici e telematici, nel rispetto
+        delle misure di sicurezza previste dal GDPR.
+    </p>
+
+    <h2>5. Diritti dell’interessato</h2>
+    <p>
+        L’utente può in qualsiasi momento esercitare i diritti di accesso, rettifica, cancellazione,
+        limitazione e portabilità contattando il Titolare all’indirizzo email sopra indicato.
+    </p>
+
+    <div class="mt-4">
+        <a asp-page="/Index" class="btn btn-firstpoint">
+            <i class="bi bi-house-door-fill"></i> Torna alla Home
+        </a>
+    </div>
+</div>
