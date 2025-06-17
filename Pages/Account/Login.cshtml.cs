@@ -34,7 +34,8 @@ namespace UfficioSinistri.Pages.Account
         {
             // 1) reCAPTCHA
             // Leggiamo sempre una stringa (mai null), anche se vuota
-            var token = Request.Form["g-recaptcha-response"].FirstOrDefault() ?? "";
+            //var token = Request.Form["g-recaptcha-response"].FirstOrDefault() ?? "";
+            string? token = Request.Form["g-recaptcha-response"];
             if (string.IsNullOrWhiteSpace(token))
             {
                 Errore = "❌ Token reCAPTCHA mancante nel POST.";
@@ -124,8 +125,11 @@ namespace UfficioSinistri.Pages.Account
             var bytes = Encoding.UTF8.GetBytes(password);
             return Convert.ToBase64String(SHA256.HashData(bytes));
         }
-        private async Task<bool> VerificaRecaptchaAsync(string token)
+        private async Task<bool> VerificaRecaptchaAsync(string? token)
         {
+            if (string.IsNullOrWhiteSpace(token))
+                return false;
+
             var secret = _config["Recaptcha:SecretKey"] ?? "";
             var client = new HttpClient();
 
