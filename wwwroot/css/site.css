@@ -186,6 +186,27 @@ h1, h2, h3 {
     }
 }
 
+@media (max-width: 1200px) {
+    /* su mobile/tablet, di default nascondi la tabella e mostra le cards */
+    #table-view {
+        display: none !important;
+    }
+
+    #cards-view {
+        display: flex !important;
+    }
+
+    /* assicura che i pulsanti riflettano lo stato: */
+    #view-table {
+        opacity: 0.6;
+    }
+
+    #view-cards {
+        opacity: 1;
+    }
+}
+
+
 /* Link e micro-interazioni */
 a {
     transition: color var(--transition-fast);

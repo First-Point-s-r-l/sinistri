@@ -180,6 +180,12 @@
             conn.on("SinistriAggiornati",()=> window.refreshTable());
             conn.start().catch(console.error);
 
+            // all’interno della IIFE…
+            const isMobile = window.innerWidth < 1200;  // breakpoint Bootstrap "sm"
+            if (isMobile) {
+                // simula il click su "Cards"
+                document.getElementById('view-cards').click();
+            }
             // init
             window.refreshTable();
         })();
