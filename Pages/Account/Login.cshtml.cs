@@ -33,12 +33,14 @@ namespace UfficioSinistri.Pages.Account
         public async Task<IActionResult> OnPostAsync()
         {
             // 1) reCAPTCHA
-            var token = Request.Form["g-recaptcha-response"];
+            // Leggiamo sempre una stringa (mai null), anche se vuota
+            var token = Request.Form["g-recaptcha-response"].FirstOrDefault() ?? "";
             if (string.IsNullOrWhiteSpace(token))
             {
                 Errore = "❌ Token reCAPTCHA mancante nel POST.";
                 return Page();
             }
+            // Adesso VerificaRecaptchaAsync prende sempre una stringa non-null
             if (!await VerificaRecaptchaAsync(token))
             {
                 Errore = "⚠️ Verifica reCAPTCHA fallita.";
@@ -124,9 +126,10 @@ namespace UfficioSinistri.Pages.Account
         }
         private async Task<bool> VerificaRecaptchaAsync(string token)
         {
-            var secret = _config["Recaptcha:SecretKey"];
+            var secret = _config["Recaptcha:SecretKey"] ?? "";
             var client = new HttpClient();
 
+            // Passiamo sempre una stringa non-null in Add
             var response = await client.PostAsync("https://www.google.com/recaptcha/api/siteverify",
                 new FormUrlEncodedContent(new Dictionary<string, string>
                 {
