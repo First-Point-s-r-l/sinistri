@@ -1,8 +1,10 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using UfficioSinistri.Data;
 using System.Security.Cryptography.X509Certificates;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
+using UfficioSinistri.Data;
+using UfficioSinistri.Hubs;
+using UfficioSinistri.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,69 +21,73 @@ if (certs.Count == 0)
     throw new Exception("❌ Certificato non trovato.");
 
 var certificate = certs[0];
-builder.WebHost.ConfigureKestrel(serverOptions =>
+builder.WebHost.ConfigureKestrel(options =>
 {
-    serverOptions.ListenAnyIP(7285, listenOptions =>
+    options.ListenAnyIP(7285, listen =>
     {
-        listenOptions.UseHttps(certificate);
+        listen.UseHttps(certificate);
     });
 });
+//--------------------------------------------------------------------------------------------------
+// Fine caricamento certificato per Kestrel
+//--------------------------------------------------------------------------------------------------
 
-// Add services to the container.
+
+// 1) Razor Pages + Session + HttpContextAccessor + multitenant
 builder.Services.AddRazorPages();
-
-// REGISTRA AppDbContext
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Aggiunge la gestione della sessione
 builder.Services.AddSession();
-
-builder.Services.AddScoped<UfficioSinistri.Services.TenantProvider>();
-
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<TenantProvider>();
 
-// Aggiunge autenticazione cookie
+// 2) EF Core
+builder.Services.AddDbContext<AppDbContext>(opts =>
+    opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// 3) Cookie Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+    .AddCookie(opts =>
     {
-        options.LoginPath = "/Account/Login";
-        options.LogoutPath = "/Account/Logout";
+        opts.LoginPath = "/Account/Login";
+        opts.LogoutPath = "/Account/Logout";
     });
+
+// 4) SignalR
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+});
+
+// 5) Hosted service per notifiche SQL→SignalR
+builder.Services.AddHostedService<SinistriNotifier>();
+
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-    app.UseHsts();
-}
+//--------------------------------------------------------------------------------------------------
+// Pipeline middleware
+//--------------------------------------------------------------------------------------------------
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseSession();
 
-app.Use(async (context, next) =>
+// Filtra il TenantProvider dalla sessione
+app.Use(async (ctx, next) =>
 {
-    var tenant = context.RequestServices.GetRequiredService<UfficioSinistri.Services.TenantProvider>();
-
-    var aziendaStr = context.Session.GetString("Azienda");
-    if (!string.IsNullOrWhiteSpace(aziendaStr) && Guid.TryParse(aziendaStr, out var aziendaId))
-    {
-        tenant.AziendaId = aziendaId;
-    }
-
+    var tenant = ctx.RequestServices.GetRequiredService<TenantProvider>();
+    var aziendaStr = ctx.Session.GetString("Azienda");
+    if (Guid.TryParse(aziendaStr, out var aid))
+        tenant.AziendaId = aid;
     await next();
 });
 
-
-
+app.UseAuthentication();
 app.UseAuthorization();
 
+
+// 6) Map Razor Pages e SignalR Hub
 app.MapRazorPages();
+app.MapHub<SinistriHub>("/hubs/sinistri");
 
 app.Run();

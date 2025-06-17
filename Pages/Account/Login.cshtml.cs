@@ -19,12 +19,12 @@ namespace UfficioSinistri.Pages.Account
         private readonly IConfiguration _config = config;
 
         [BindProperty, Required(ErrorMessage = "Campo mail obbligatorio"), EmailAddress]
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
         [BindProperty, Required(ErrorMessage = "Campo password obbligatorio"), DataType(DataType.Password)]
-        public string Password { get; set; }
+        public required string Password { get; set; }
 
-        public string Errore { get; set; }
+        public required string Errore { get; set; }
 
         private const int MaxTentativiFalliti = 3;
 
@@ -32,6 +32,7 @@ namespace UfficioSinistri.Pages.Account
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // 1) reCAPTCHA
             var token = Request.Form["g-recaptcha-response"];
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -47,28 +48,19 @@ namespace UfficioSinistri.Pages.Account
             if (!ModelState.IsValid)
                 return Page();
 
+            // 2) Carica utente
             var utente = _db.Utenti.FirstOrDefault(u => u.Email == Email);
-
-            if (utente == null)
+            if (utente == null || !utente.Attivo)
             {
-                Errore = "Credenziali errate.";
+                Errore = utente == null
+                    ? "Credenziali errate."
+                    : "Account bloccato.";
                 return Page();
             }
 
-            if (!utente.Attivo)
-            {
-                Errore = "Account bloccato.";
-                return Page();
-            }
-
+            // 3) Verifica password e blocco per troppi tentativi
             if (utente.PasswordHash != HashPassword(Password.Trim()))
             {
-                var inserita = HashPassword(Password);
-                var salvata = utente.PasswordHash;
-
-                Console.WriteLine($"Inserita: {inserita}");
-                Console.WriteLine($"Salvata: {salvata}");
-                // Tentativo fallito
                 var key = $"Tentativi_{Email}";
                 int tentativi = HttpContext.Session.GetInt32(key) ?? 0;
                 tentativi++;
@@ -78,44 +70,57 @@ namespace UfficioSinistri.Pages.Account
                 {
                     utente.Attivo = false;
                     await _db.SaveChangesAsync();
-
                     Errore = "Troppi tentativi falliti. Account bloccato.";
-                    return Page();
                 }
                 else
                 {
                     Errore = $"Credenziali errate. Tentativo {tentativi} di {MaxTentativiFalliti}.";
-                    return Page();
                 }
+                return Page();
             }
 
-            // Login riuscito
-            // Reset dei tentativi
+            // 4) Login OK: reset tentativi e set sessione
             HttpContext.Session.Remove($"Tentativi_{Email}");
-
             HttpContext.Session.SetString("Email", utente.Email);
             HttpContext.Session.SetString("Azienda", utente.AziendaId.ToString());
             HttpContext.Session.SetString("IsAdmin", utente.IsAdmin.ToString());
 
+            // 5) Preparo i claim, inclusi AziendaId e NameIdentifier
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, utente.Email),
-                new Claim(ClaimTypes.Role, utente.IsAdmin ? "Admin" : "User")
+                // identifica univocamente l'utente
+                new(ClaimTypes.NameIdentifier, utente.Id.ToString()),
+                // email o username
+                new(ClaimTypes.Name, utente.Email),
+                // ruolo
+                new(ClaimTypes.Role, utente.IsAdmin ? "Admin" : "User"),
+                // tenant multitenant
+                new("AziendaId", utente.AziendaId.ToString())
             };
 
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var identity = new ClaimsIdentity(
+                claims,
+                CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            // 6) Firma il cookie
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
+                new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8)
+                });
 
             return RedirectToPage("/Sinistri");
         }
 
-        private string HashPassword(string password)
+
+        private static string HashPassword(string password)
         {
-            using var sha = SHA256.Create();
             var bytes = Encoding.UTF8.GetBytes(password);
-            return Convert.ToBase64String(sha.ComputeHash(bytes));
+            return Convert.ToBase64String(SHA256.HashData(bytes));
         }
         private async Task<bool> VerificaRecaptchaAsync(string token)
         {

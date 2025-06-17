@@ -52,94 +52,104 @@
 </table>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@7/dist/browser/signalr.min.js"></script>
     <script>
         (function() {
+          // 1) Definizione di refreshTable sul window
+          window.refreshTable = async function() {
+            console.log("🔄 refreshTable invocato");
             const inputs = {
-                Numero:   document.getElementById('f-numero'),
-                Targa:    document.getElementById('f-targa'),
-                Termini:  document.getElementById('f-termini'),
-                DataFrom: document.getElementById('f-datefrom'),
-                DataTo:   document.getElementById('f-dateto')
+              Numero:   document.getElementById('f-numero').value,
+              Targa:    document.getElementById('f-targa').value,
+              Termini:  document.getElementById('f-termini').value,
+              DataFrom: document.getElementById('f-datefrom').value,
+              DataTo:   document.getElementById('f-dateto').value
             };
-
-            let timer;
-            async function refreshTable() {
-                const params = new URLSearchParams({ handler: 'Filter' });
-                Object.entries(inputs).forEach(([k, el]) => {
-                    if (el.value) params.set('Filter' + k, el.value);
-                });
-
-                const resp = await fetch(`?${params.toString()}`);
-                const data = await resp.json();
-                const tbody = document.getElementById('sinistri-tbody');
-
-                tbody.innerHTML = data.map(s => `
-                    <tr>
-                        <td>${s.historyCallId}</td>
-                        <td>${s.numero || ''}</td>
-                        <td>${s.nome || ''}</td>
-                        <td>${s.cognome || ''}</td>
-                        <td>${s.targa || ''}</td>
-                        <td>${s.evento || ''}</td>
-                        <td>${s.riassunto || ''}</td>
-                        <td>${new Date(s.data).toLocaleString()}</td>
-                        <td>
-                            ${s.gestita
-                            ? '<i class="bi bi-check-circle-fill text-success"></i>'
-                            : '<i class="bi bi-x-circle-fill text-danger"></i>'}
-                        </td>
-                        <td>
-                            ${s.hasAllegati
-                            ? '<i class="bi bi-paperclip"></i>'
-                            : '<i class="bi bi-dash-lg text-muted"></i>'}
-                        </td>
-                        <td>
-                            <!-- Dettaglio -->
-                            <a href="/SinistroDetail?id=${s.id}"
-                               class="btn btn-firstpoint btn-sm me-1">🔍</a>
-
-                            <!-- Export list-level -->
-                            <a href="?handler=ExportCsv&${params.toString()}&id=${s.id}"
-                               class="btn btn-sm btn-outline-secondary me-1">CSV</a>
-                            <a href="?handler=ExportPdf&${params.toString()}&id=${s.id}"
-                               class="btn btn-sm btn-outline-secondary me-1">PDF</a>
-
-                            <!-- Export detail-level -->
-                            <a href="/SinistroDetail?handler=ExportCsv&id=${s.id}"
-                               class="btn btn-sm btn-outline-primary me-1">CSV↓</a>
-                            <a href="/SinistroDetail?handler=ExportPdf&id=${s.id}"
-                               class="btn btn-sm btn-outline-primary">PDF↓</a>
-                        </td>
-                    </tr>
-                `).join('');
+            const params = new URLSearchParams({ handler: 'Filter' });
+            for (const [k,v] of Object.entries(inputs)) {
+              if (v) params.set('Filter'+k, v);
             }
+            const resp = await fetch(`?${params}`);
+            const data = await resp.json();
+            document.getElementById('sinistri-tbody').innerHTML =
+              data.map(s => `
+                <tr>
+                  <td>${s.historyCallId}</td>
+                  <td>${s.numero||''}</td>
+                  <td>${s.nome||''}</td>
+                  <td>${s.cognome||''}</td>
+                  <td>${s.targa||''}</td>
+                  <td>${s.evento||''}</td>
+                  <td>${s.riassunto||''}</td>
+                  <td>${new Date(s.data).toLocaleString()}</td>
+                  <td>${s.gestita
+                    ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                    : '<i class="bi bi-x-circle-fill text-danger"></i>'}</td>
+                  <td>${s.hasAllegati
+                    ? '<i class="bi bi-paperclip"></i>'
+                    : '<i class="bi bi-dash-lg text-muted"></i>'}</td>
+                  <td>
+                    <a href="/SinistroDetail?id=${s.id}"
+                       class="btn btn-firstpoint btn-sm me-1">🔍</a>
+                    <a href="?handler=ExportCsv&${params}&id=${s.id}"
+                       class="btn btn-sm btn-outline-secondary me-1">CSV</a>
+                    <a href="?handler=ExportPdf&${params}&id=${s.id}"
+                       class="btn btn-sm btn-outline-secondary me-1">PDF</a>
+                    <a href="/SinistroDetail?handler=ExportCsv&id=${s.id}"
+                       class="btn btn-sm btn-outline-primary me-1">CSV↓</a>
+                    <a href="/SinistroDetail?handler=ExportPdf&id=${s.id}"
+                       class="btn btn-sm btn-outline-primary">PDF↓</a>
+                  </td>
+                </tr>
+              `).join('');
+          };
 
-            // debounce sui filtri
-            Object.values(inputs).forEach(el => {
-                el.addEventListener('input', () => {
-                    clearTimeout(timer);
-                    timer = setTimeout(refreshTable, 300);
-                });
-            });
+          // 2) Debounce sui filtri
+          ['f-numero','f-targa','f-termini','f-datefrom','f-dateto']
+            .forEach(id => document.getElementById(id)
+              .addEventListener('input', () => {
+                clearTimeout(window._timer);
+                window._timer = setTimeout(window.refreshTable, 300);
+              })
+            );
 
-            // pulsanti di export globali
-            document.getElementById('export-csv').addEventListener('click', () => {
-                const qs = new URLSearchParams({ handler: 'ExportCsv' });
-                Object.entries(inputs).forEach(([k, el]) => {
-                    if (el.value) qs.set('Filter' + k, el.value);
-                });
-                window.location.href = `?${qs}`;
-            });
-            document.getElementById('export-pdf').addEventListener('click', () => {
-                const qs = new URLSearchParams({ handler: 'ExportPdf' });
-                Object.entries(inputs).forEach(([k, el]) => {
-                    if (el.value) qs.set('Filter' + k, el.value);
-                });
-                window.location.href = `?${qs}`;
-            });
+          // 3) Pulsanti export globali
+          document.getElementById('export-csv').onclick = () => {
+            const qs = new URLSearchParams({ handler:'ExportCsv' });
+            ['Numero','Targa','Termini','DataFrom','DataTo']
+              .forEach(k => {
+                const v = document.getElementById('f-'+k.toLowerCase()).value;
+                if (v) qs.set('Filter'+k, v);
+              });
+            window.location.href = `?${qs}`;
+          };
+          document.getElementById('export-pdf').onclick = () => {
+            const qs = new URLSearchParams({ handler:'ExportPdf' });
+            ['Numero','Targa','Termini','DataFrom','DataTo']
+              .forEach(k => {
+                const v = document.getElementById('f-'+k.toLowerCase()).value;
+                if (v) qs.set('Filter'+k, v);
+              });
+            window.location.href = `?${qs}`;
+          };
 
-            // primo caricamento
-            refreshTable();
+          // 4) SignalR: ascolta e richiama refreshTable
+          const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/sinistri")
+            .withAutomaticReconnect()
+            .build();
+
+          connection.on("SinistriAggiornati", () => {
+            console.log("SinistriAggiornati → aggiorno tabella");
+            window.refreshTable();
+          });
+
+          connection.start()
+            .then(() => console.log("SignalR connesso"))
+            .catch(err => console.error(err));
+
+          // caricamento iniziale
+          window.refreshTable();
         })();
     </script>
 }
