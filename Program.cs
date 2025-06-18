@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 //--------------------------------------------------------------------------------------------------
 // 1) Carica il certificato per Kestrel (HTTPS)
 //--------------------------------------------------------------------------------------------------
+/*
 var certThumbprint = "B627FB1093AF3CD052D21C219029A2155DFF8A84";
 using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
 store.Open(OpenFlags.ReadOnly);
@@ -28,6 +29,7 @@ builder.WebHost.ConfigureKestrel(options =>
         listen.UseHttps(certificate);
     });
 });
+*/
 //--------------------------------------------------------------------------------------------------
 // Fine caricamento certificato per Kestrel
 //--------------------------------------------------------------------------------------------------
