@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO.Compression;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +26,19 @@ namespace UfficioSinistri.Pages
         TenantProvider tenant,
         ILogger<SinistroDetailModel> logger) : PageModel
     {
+
+        // Nuova classe helper per i file
+        public class FileAttachment
+        {
+            public string Name { get; set; } = default!;
+            public string FullPath { get; set; } = default!;
+            public string Extension { get; set; } = default!;
+        }
+
+        // Lista dei file sul disco
+        public List<FileAttachment> Attachments { get; set; } = [];
+
+
         private readonly AppDbContext _db = db;
         private readonly TenantProvider _tenant = tenant;
         private readonly ILogger<SinistroDetailModel> _logger = logger;
@@ -37,8 +51,7 @@ namespace UfficioSinistri.Pages
 
         public async Task<IActionResult> OnGetAsync(Guid? id)
         {
-            if (id == null)
-                return BadRequest();
+            if (id == null) return BadRequest();
 
             // Apertura connessione
             var conn = _db.Database.GetDbConnection();
@@ -80,24 +93,42 @@ namespace UfficioSinistri.Pages
                 return NotFound();
             }
 
-            // 2) Leggi il secondo result-set: gli allegati
-            if (await reader.NextResultAsync())
+            // Solo se il flag HasAllegati è true vado a guardare sulla cartella
+            if (Sinistro.HasAllegati)
             {
-                while (await reader.ReadAsync())
+                // –– NUOVA LOGICA PER GLI ALLEGATI SU DISCO ––
+                var folder = Path.Combine(@"C:\ImmaginiSinistri", id.Value.ToString());
+                if (Directory.Exists(folder))
                 {
-                    Allegati.Add(new Allegato
+                    Attachments = [.. Directory
+                    .EnumerateFiles(folder)
+                    .Select(path => new FileAttachment
                     {
-                        AllegatoId = reader.GetGuid(reader.GetOrdinal("AllegatoId")),
-                        NomeFile = reader.GetString(reader.GetOrdinal("NomeFile")),
-                        Estensione = reader.IsDBNull(reader.GetOrdinal("Estensione")) ? null : reader.GetString(reader.GetOrdinal("Estensione")),
-                        DataCaricamento = reader.GetDateTime(reader.GetOrdinal("DataCaricamento"))
-                    });
+                        Name = Path.GetFileName(path),
+                        FullPath = path,
+                        Extension = Path.GetExtension(path).TrimStart('.').ToLowerInvariant()
+                    })];
                 }
+                else
+                {
+                    // Logga l’anomalia: flag a true ma cartella mancante
+                    _logger.LogWarning(
+                      "Sinistro {SinistroId} ha HasAllegati=true ma la cartella fisica non esiste: {Folder}",
+                      id, folder);
+                    // lasciamo Attachments vuota
+                }
+            }
+            else
+            {
+                // facoltativo: garantisco che sia vuota
+                Attachments = [];
             }
 
             return Page();
         }
 
+
+        /*
         /// <summary>
         /// Scarica il file binario dell’allegato
         /// </summary>
@@ -136,6 +167,143 @@ namespace UfficioSinistri.Pages
                 _ => "application/octet-stream"
             };
         }
+        */
+
+        /*
+        /// <summary>
+        /// Scarica un singolo allegato
+        /// </summary>
+        public IActionResult OnGetDownloadAsync(string fileName, Guid id)
+        {
+            var folder = Path.Combine(@"C:\ImmaginiSinistri", id.ToString());
+            var full = Path.Combine(folder, fileName);
+            if (!System.IO.File.Exists(full))
+                return NotFound();
+
+            var mime = GetMime(fileName);
+            var bytes = System.IO.File.ReadAllBytes(full);
+            return File(bytes, mime, fileName);
+        }
+
+        /// <summary>
+        /// ZIP dei selezionati
+        /// </summary>
+        public async Task<IActionResult> OnPostDownloadSelectedAsync(
+            Guid id,
+            [FromForm(Name = "selected")] string[] selected)
+        {
+            // 1) Ricarica il dettaglio, così popoli Model.Sinistro e Allegati
+            var result = await OnGetAsync(id);
+            if (result is not PageResult || Sinistro == null)
+                return NotFound();
+
+            // 2) Controlla il flag e la cartella
+            if (!Sinistro.HasAllegati)
+            {
+                TempData["Alert"] = "Nessun allegato disponibile.";
+                return RedirectToPage();
+            }
+
+            var folder = Path.Combine(@"C:\ImmaginiSinistri", id.ToString());
+            if (!Directory.Exists(folder))
+            {
+                TempData["Alert"] = "Cartella degli allegati non trovata!";
+                return RedirectToPage();
+            }
+
+            // 3) Crea lo ZIP in memoria
+            using var ms = new MemoryStream();
+            using (var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                foreach (var name in selected.Distinct())
+                {
+                    var safe = Path.GetFileName(name);
+                    var file = Path.Combine(folder, safe);
+                    if (!System.IO.File.Exists(file)) continue;
+
+                    var entry = zip.CreateEntry(safe, CompressionLevel.Optimal);
+                    using var fs = System.IO.File.OpenRead(file);
+                    using var es = entry.Open();
+                    await fs.CopyToAsync(es);
+                }
+            }
+
+            // 4) Torna all’inizio e restituisci
+            ms.Position = 0;
+            return File(ms.ToArray(),
+                        "application/zip",
+                        $"Allegati_{id}.zip");
+        }
+
+
+        private static string GetMime(string fileName)
+        {
+            var ext = Path.GetExtension(fileName).ToLowerInvariant();
+            return ext switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".pdf" => "application/pdf",
+                ".mp4" => "video/mp4",
+                _ => "application/octet-stream"
+            };
+        }
+        */
+
+
+        /// <summary>
+        /// Scarica un singolo allegato
+        /// </summary>
+        public IActionResult OnGetDownloadAsync(string fileName, Guid id)
+        {
+            var folder = Path.Combine(@"C:\ImmaginiSinistri", id.ToString());
+            var full = Path.Combine(folder, fileName);
+            if (!System.IO.File.Exists(full))
+                return NotFound();
+
+            var mime = GetMime(fileName);
+            var bytes = System.IO.File.ReadAllBytes(full);
+            return File(bytes, mime, fileName);
+        }
+
+        /// <summary>
+        /// Zippa e scarica tutti i file selezionati
+        /// </summary>
+        public IActionResult OnPostDownloadSelectedAsync(string[] selected, Guid id)
+        {
+            var folder = Path.Combine(@"C:\ImmaginiSinistri", id.ToString());
+            using var ms = new MemoryStream();
+            using (var zip = new ZipArchive(ms, ZipArchiveMode.Create, true))
+            {
+                foreach (var name in selected)
+                {
+                    var full = Path.Combine(folder, name);
+                    if (!System.IO.File.Exists(full)) continue;
+                    var entry = zip.CreateEntry(name, CompressionLevel.Fastest);
+                    using var es = entry.Open();
+                    using var fs = System.IO.File.OpenRead(full);
+                    fs.CopyTo(es);
+                }
+            }
+            ms.Position = 0;
+            return File(ms.ToArray(), "application/zip", $"Allegati_{id}.zip");
+        }
+
+        private static string GetMime(string fileName)
+        {
+            var ext = Path.GetExtension(fileName).ToLowerInvariant();
+            return ext switch
+            {
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".pdf" => "application/pdf",
+                ".mp4" => "video/mp4",
+                _ => "application/octet-stream"
+            };
+        }
+
 
         /// <summary>
         /// Export CSV del singolo sinistro
@@ -170,7 +338,7 @@ namespace UfficioSinistri.Pages
             sb.AppendLine(string.Join(',', headers));
 
             // 2) Valori principale (escape di eventuali virgolette)
-            string Esc(string? v) =>
+            static string Esc(string? v) =>
                 string.IsNullOrEmpty(v)
                     ? ""
                     : $"\"{v.Replace("\"", "\"\"")}\"";
@@ -402,4 +570,5 @@ namespace UfficioSinistri.Pages
         }
 
     }
+
 }

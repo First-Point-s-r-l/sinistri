@@ -1,121 +1,168 @@
 ﻿@page "/SinistroDetail"
 @model UfficioSinistri.Pages.SinistroDetailModel
 @{
-    ViewData["Title"] = "Dettaglio Sinistro";
+	ViewData["Title"] = "Dettaglio Sinistro";
 }
 
 <div class="main-container">
-    @if (Model.Sinistro == null)
-    {
-        <div class="alert alert-warning">Sinistro non trovato.</div>
-    }
-    else
-    {
-        <h1 class="mb-4">@ViewData["Title"]</h1>
+	@if (Model.Sinistro == null)
+	{
+		<div class="alert alert-warning">Sinistro non trovato.</div>
+	}
+	else
+	{
+		<h1 class="mb-4">@ViewData["Title"]</h1>
 
-        <div class="sinistro-card mb-4">
-            <div class="row mb-2">
-                <div class="col-label">HistoryCallId</div>
-                <div class="col-value">@Model.Sinistro.HistoryCallId</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Numero</div>
-                <div class="col-value">@Model.Sinistro.Numero</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Nome</div>
-                <div class="col-value">@Model.Sinistro.Nome</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Cognome</div>
-                <div class="col-value">@Model.Sinistro.Cognome</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Targa</div>
-                <div class="col-value">@Model.Sinistro.Targa</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Data Chiamata</div>
-                <div class="col-value">@Model.Sinistro.DataChiamata.ToString("dd/MM/yyyy HH:mm")</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Gestita</div>
-                <div class="col-value">@((Model.Sinistro.Gestita) ? "✓" : "No")</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Allegati</div>
-                <div class="col-value">@((Model.Sinistro.HasAllegati) ? "📎" : "No")</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Trascrizione</div>
-                <div class="col-value testo-lungo">@Model.Sinistro.Trascrizione</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Riassunto</div>
-                <div class="col-value testo-lungo">@Model.Sinistro.Riassunto</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Evento</div>
-                <div class="col-value testo-lungo">@Model.Sinistro.Evento</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Assistenza</div>
-                <div class="col-value">@Model.Sinistro.Assistenza</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Proposta AI</div>
-                <div class="col-value testo-lungo">@Model.Sinistro.PropostaAI</div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-label">Selezione Utente</div>
-                <div class="col-value testo-lungo">@Model.Sinistro.SelezioneUtente</div>
-            </div>
-        </div>
+		<div class="sinistro-card mb-4">
+			<div class="row mb-2">
+				<div class="col-label">HistoryCallId</div>
+				<div class="col-value">@Model.Sinistro.HistoryCallId</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Numero</div>
+				<div class="col-value">@Model.Sinistro.Numero</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Nome</div>
+				<div class="col-value">@Model.Sinistro.Nome</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Cognome</div>
+				<div class="col-value">@Model.Sinistro.Cognome</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Targa</div>
+				<div class="col-value">@Model.Sinistro.Targa</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Data Chiamata</div>
+				<div class="col-value">@Model.Sinistro.DataChiamata.ToString("dd/MM/yyyy HH:mm")</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Gestita</div>
+				<div class="col-value">@((Model.Sinistro.Gestita) ? "✓" : "No")</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Allegati</div>
+				<div class="col-value">@((Model.Sinistro.HasAllegati) ? "📎" : "No")</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Trascrizione</div>
+				<div class="col-value testo-lungo">@Model.Sinistro.Trascrizione</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Riassunto</div>
+				<div class="col-value testo-lungo">@Model.Sinistro.Riassunto</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Evento</div>
+				<div class="col-value testo-lungo">@Model.Sinistro.Evento</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Assistenza</div>
+				<div class="col-value">@Model.Sinistro.Assistenza</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Proposta AI</div>
+				<div class="col-value testo-lungo">@Model.Sinistro.PropostaAI</div>
+			</div>
+			<div class="row mb-2">
+				<div class="col-label">Selezione Utente</div>
+				<div class="col-value testo-lungo">@Model.Sinistro.SelezioneUtente</div>
+			</div>
+		</div>
 
-        @if (Model.Allegati.Count > 0)
-        {
-            <h2>Allegati</h2>
-            <ul class="list-group mb-4">
-                @foreach (var a in Model.Allegati)
-                {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>
-                            @a.NomeFile (@a.Estensione)
-                        </span>
-                        <small class="text-muted">@a.DataCaricamento.ToString("dd/MM/yyyy HH:mm")</small>
-                        @* link al download: serve implementare l’handler OnGetDownloadAttachment in SinistroDetailModel *@
-                        <a asp-page-handler="DownloadAttachment"
-                           asp-route-id="@a.AllegatoId"
-                           class="btn btn-link btn-sm ms-3">
-                            Scarica
-                        </a>
-                    </li>
-                }
-            </ul>
-        }
-        else
-        {
-            <div class="alert alert-secondary">Nessun allegato presente.</div>
-        }
+		@if (Model.Attachments.Any())
+		{
+			<h2>Allegati</h2>
+			<form method="post" asp-page-handler="DownloadSelected" class="mb-3">
+				<input type="hidden" name="id" value="@Model.Sinistro.TranscriptionResultId" />
+				<div class="row g-3">
+					@foreach (var a in Model.Attachments)
+					{
+						<div class="col-12 col-md-6">
+							<div class="card shadow-sm h-100">
+								<div class="card-body d-flex flex-column">
+									<div class="mb-2 text-truncate fw-bold">@a.Name</div>
 
-        <div class="mb-4">
-            <!-- Export a livello di dettaglio -->
-            <a asp-page="/SinistroDetail" 
-                asp-page-handler="ExportCsv"
-                asp-route-id="@Model.Sinistro.TranscriptionResultId"
-                class="btn btn-outline-secondary btn-sm me-2">
-                Esporta CSV
-            </a>
-            <a asp-page="/SinistroDetail"
-               asp-page-handler="ExportPdf"
-               asp-route-id="@Model.Sinistro.TranscriptionResultId"
-               class="btn btn-outline-secondary btn-sm">
-                Esporta PDF
-            </a>
-        </div>
+									@switch (a.Extension)
+									{
+										case "jpg":
+										case "jpeg":
+										case "png":
+										case "gif":
+											<img src="@Url.Page("/SinistroDetail", "Download", new { id = Model.Sinistro.TranscriptionResultId, fileName = a.Name })"
+												 class="img-fluid rounded mb-2" style="max-height:150px;" />
+											break;
 
-        <div>
-            <a asp-page="/Sinistri" class="btn btn-firstpoint">← Torna alla lista</a>
-        </div>
-    }
+										case "pdf":
+											<object data="@Url.Page("/SinistroDetail", "Download", new { id = Model.Sinistro.TranscriptionResultId, fileName = a.Name })"
+													type="application/pdf"
+													class="mb-2"
+													style="width:100%;height:150px;">
+												<p>Anteprima non disponibile.</p>
+											</object>
+											break;
+
+										case "mp4":
+											<video controls
+												   src="@Url.Page("/SinistroDetail", "Download", new { id = Model.Sinistro.TranscriptionResultId, fileName = a.Name })"
+												   class="mb-2" style="max-height:150px;width:100%;"></video>
+											break;
+
+										default:
+											<div class="mb-2"><i class="bi bi-file-earmark-text"></i> Tipo non previewabile</div>
+											;
+											break;
+									}
+
+									<div class="mt-auto d-flex justify-content-between align-items-center">
+										<div>
+											<input type="checkbox" name="selected" value="@a.Name" />
+											<label class="small mb-0">Seleziona</label>
+										</div>
+										<a asp-page-handler="Download"
+										   asp-route-id="@Model.Sinistro.TranscriptionResultId"
+										   asp-route-fileName="@a.Name"
+										   class="btn btn-sm btn-outline-primary">
+											<i class="bi bi-download"></i>
+										</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					}
+				</div>
+
+				<button type="submit" class="btn btn-firstpoint mt-3">
+					<i class="bi bi-download"></i> Scarica selezionati
+				</button>
+			</form>
+		}
+		else
+		{
+			<div class="alert alert-secondary">Nessun allegato presente.</div>
+		}
+	}
+
+
+		<div class="mb-4">
+			<!-- Export a livello di dettaglio -->
+			<a asp-page="/SinistroDetail"
+			   asp-page-handler="ExportCsv"
+			   asp-route-id="@Model.Sinistro.TranscriptionResultId"
+			   class="btn btn-outline-secondary btn-sm me-2">
+				Esporta CSV
+			</a>
+			<a asp-page="/SinistroDetail"
+			   asp-page-handler="ExportPdf"
+			   asp-route-id="@Model.Sinistro.TranscriptionResultId"
+			   class="btn btn-outline-secondary btn-sm">
+				Esporta PDF
+			</a>
+		</div>
+
+		<div>
+			<a asp-page="/Sinistri" class="btn btn-firstpoint">← Torna alla lista</a>
+		</div>
 </div>
