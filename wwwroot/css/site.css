@@ -266,7 +266,7 @@ footer {
     word-break: break-word;
 }
 
-/* font più compatto in tabella */
+/* font piï¿½ compatto in tabella */
 .table {
     font-size: 0.9rem;
 }
@@ -292,3 +292,29 @@ footer {
         transform: translateY(-4px);
         box-shadow: 0 8px 24px rgba(0,0,0,0.12);
     }
+
+/* Pulsante back sticky per SinistroDetail */
+.fp-back-btn {
+    position: absolute;
+    left: 2rem;
+    top: 1.5rem;
+    z-index: 20;
+    font-size: 1.2rem;
+    padding: 0.6em 1.2em;
+    border-radius: 2em;
+    background: #fff;
+    color: #003366;
+    border: 1.5px solid #007bff;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+.fp-back-btn:hover {
+    background: #007bff;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    text-decoration: none;
+}

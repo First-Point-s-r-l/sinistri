@@ -17,8 +17,8 @@
 
 <!-- EXPORT -->
 <p class="mb-3">
-    <button id="export-csv" class="btn btn-outline-secondary btn-sm me-1">Esporta CSV</button>
-    <button id="export-pdf" class="btn btn-outline-secondary btn-sm">Esporta PDF</button>
+    <button id="export-csv" type="button" class="btn btn-outline-secondary btn-sm me-1">Esporta CSV</button>
+    <button id="export-pdf" type="button" class="btn btn-outline-secondary btn-sm">Esporta PDF</button>
 </p>
 
 <!-- TOGGLE VISTA -->
@@ -105,12 +105,12 @@
                           : '<i class="bi bi-dash-lg text-muted"></i>'}
                       </td>
                       <td class="actions-cell">
-                        <div><a href="/SinistroDetail?id=${s.id}"               class="btn btn-sm btn-primary mb-1 w-100">🔍 Dettaglio</a></div>
+                        <div><a href="/SinistroDetail?id=${s.id}" class="btn btn-sm btn-primary mb-1 w-100">🔍 Dettaglio</a></div>
                         <div class="d-flex gap-1 justify-content-center">
                             @*<a href="?handler=ExportCsv&${qs}&id=${s.id}"       class="btn btn-sm btn-outline-secondary">CSV</a>
                             <a href="?handler=ExportPdf&${qs}&id=${s.id}"       class="btn btn-sm btn-outline-secondary">PDF</a>*@
-                            <a href="/SinistroDetail?handler=ExportCsv&id=${s.id}"  class="btn btn-sm btn-outline-secondary me-1">CSV↓</a>
-                            <a href="/SinistroDetail?handler=ExportPdf&id=${s.id}"  class="btn btn-sm btn-outline-secondary">PDF↓</a>
+                            @*<a href="/SinistroDetail?handler=ExportCsv&id=${s.id}"  class="btn btn-sm btn-outline-secondary me-1">CSV↓</a>
+                            <a href="/SinistroDetail?handler=ExportPdf&id=${s.id}"  class="btn btn-sm btn-outline-secondary">PDF↓</a>*@
                         </div>
                       </td>
                     </tr>
@@ -156,8 +156,16 @@
             }));
 
             // 4) export
-            $('#export-csv').click(()=> window.location='?'+(new URLSearchParams({handler:'ExportCsv',...Object.fromEntries(new URLSearchParams(location.search))})));
-            $('#export-pdf').click(()=> window.location='?'+(new URLSearchParams({handler:'ExportPdf',...Object.fromEntries(new URLSearchParams(location.search))})));
+            $('#export-csv').click(function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                window.location='?'+(new URLSearchParams({handler:'ExportCsv',...Object.fromEntries(new URLSearchParams(location.search))}));
+            });
+            $('#export-pdf').click(function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                window.location='?'+(new URLSearchParams({handler:'ExportPdf',...Object.fromEntries(new URLSearchParams(location.search))}));
+            });
 
             // 5) toggle vista
             $('#view-table').click(()=>{
@@ -180,7 +188,7 @@
             conn.on("SinistriAggiornati",()=> window.refreshTable());
             conn.start().catch(console.error);
 
-            // all’interno della IIFE…
+            // all'interno della IIFE…
             const isMobile = window.innerWidth < 1200;  // breakpoint Bootstrap "sm"
             if (isMobile) {
                 // simula il click su "Cards"

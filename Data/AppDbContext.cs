@@ -10,6 +10,7 @@ namespace UfficioSinistri.Data
 
         public DbSet<Utente> Utenti { get; set; }
         public DbSet<Sinistro> Sinistri { get; set; }
+        public DbSet<SinistroNota> SinistroNote { get; set; }
 
         public DbSet<Allegato> Allegati { get; set; }
 
@@ -38,6 +39,9 @@ namespace UfficioSinistri.Data
                 .HasQueryFilter(a =>
                     _tenant.AziendaId == Guid.Empty
                     || a.AziendaId == _tenant.AziendaId);
+
+            // I campi OperatoreId e NoteOp sono gestiti tramite convenzioni EF
+            // Il campo DataChiusura è gestito tramite convenzioni EF
         }
     }
 }

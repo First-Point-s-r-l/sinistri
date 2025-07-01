@@ -4,6 +4,227 @@
 	ViewData["Title"] = "Dettaglio Sinistro";
 }
 
+@if (TempData["Success"] != null)
+{
+	<div class="alert alert-success alert-dismissible fade show" role="alert">
+		<i class="bi bi-check-circle"></i> @TempData["Success"]
+		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Chiudi"></button>
+	</div>
+}
+@if (TempData["Alert"] != null)
+{
+	<div class="alert alert-danger alert-dismissible fade show" role="alert">
+		<i class="bi bi-exclamation-triangle"></i> @TempData["Alert"]
+		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Chiudi"></button>
+	</div>
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+
+<style>
+	body, .main-container { background: #f4f7fa; }
+	.fp-glass {
+		background: rgba(255,255,255,0.85);
+		box-shadow: 0 8px 32px 0 rgba(31,38,135,0.10);
+		border-radius: 1.2rem;
+		border: 1.5px solid #e3e8ee;
+		margin-bottom: 2rem;
+		padding: 2rem 1.5rem;
+		transition: box-shadow 0.2s;
+	}
+	.fp-glass:hover { box-shadow: 0 12px 32px 0 rgba(31,38,135,0.18); }
+	.fp-header-sticky {
+		position: sticky;
+		top: 0;
+		z-index: 10;
+		background: linear-gradient(90deg, #003366 0%, #007bff 100%);
+		color: #fff;
+		padding: 1.5rem 2rem 1rem 2rem;
+		border-radius: 1rem 1rem 0 0;
+		margin-bottom: 0;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+	}
+	.fp-badge {
+		font-size: 1.1rem;
+		padding: 0.5em 1.2em;
+		border-radius: 1em;
+		font-weight: 700;
+		background: #007bff;
+		color: #fff;
+		margin-left: 1em;
+		letter-spacing: 0.5px;
+	}
+	.fp-badge-rosso {
+		background: #e30613;
+		color: #fff;
+	}
+	.fp-section-title {
+		color: #003366;
+		font-weight: 700;
+		font-size: 1.25rem;
+		margin-bottom: 1.2rem;
+		display: flex;
+		align-items: center;
+		gap: 0.7em;
+		cursor: pointer;
+		user-select: none;
+	}
+	.fp-note-master {
+		background: #f8f9fa;
+		border-left: 5px solid #007bff;
+		padding: 1rem 1.5rem;
+		border-radius: 0.5rem;
+		margin-bottom: 1rem;
+		font-size: 1.1rem;
+	}
+	.fp-note-chiusura {
+		background: #e30613;
+		color: #fff;
+		border-radius: 0.5rem;
+		padding: 0.5rem 1rem;
+		font-size: 0.98rem;
+		margin-bottom: 0.5rem;
+		display: inline-block;
+		font-weight: 600;
+		letter-spacing: 0.5px;
+	}
+	.fp-note-list .list-group-item {
+		border: none;
+		border-bottom: 1px solid #eee;
+		padding: 1.1rem 0.5rem;
+		background: transparent;
+		font-size: 1.08rem;
+	}
+	.fp-note-list .list-group-item:last-child {
+		border-bottom: none;
+	}
+	.fp-note-meta {
+		font-size: 0.98rem;
+		color: #888;
+	}
+	.fp-btn-rosso {
+		background: #e30613;
+		color: #fff;
+		border: none;
+		font-size: 1.1rem;
+	}
+	.fp-btn-rosso:hover {
+		background: #b8000a;
+		color: #fff;
+	}
+	.fp-allegati-card {
+		background: #f8f9fa;
+		border-radius: 0.7rem;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+		margin-bottom: 1rem;
+		padding: 1rem;
+	}
+	.fp-collapse-icon {
+		font-size: 1.3rem;
+		margin-right: 0.5em;
+		transition: transform 0.2s;
+	}
+	.fp-section-collapsed .fp-collapse-icon { transform: rotate(-90deg); }
+	@@media (max-width: 768px) {
+		.fp-glass { padding: 1rem 0.5rem; }
+		.fp-header-sticky { padding: 1rem; }
+		.fp-section-title { font-size: 1.1rem; }
+	}
+	.fp-back-btn {
+		position: absolute;
+		left: 2rem;
+		top: 1.5rem;
+		z-index: 20;
+		font-size: 1.2rem;
+		padding: 0.6em 1.2em;
+		border-radius: 2em;
+		background: #fff;
+		color: #003366;
+		border: 1.5px solid #007bff;
+		font-weight: 700;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+		transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+	}
+	.fp-back-btn:hover {
+		background: #007bff;
+		color: #fff;
+		box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+		text-decoration: none;
+	}
+	.fp-allegato-thumb {
+		width: 90px;
+		height: 90px;
+		object-fit: cover;
+		border-radius: 0.6em;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+		cursor: pointer;
+		transition: transform 0.18s, box-shadow 0.18s;
+		border: 2px solid #e3e8ee;
+	}
+	.fp-allegato-thumb:hover {
+		transform: scale(1.13);
+		box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+		border-color: #007bff;
+	}
+	.fp-allegato-badge {
+		position: absolute;
+		top: 6px;
+		left: 6px;
+		background: #007bff;
+		color: #fff;
+		font-size: 0.85rem;
+		padding: 0.2em 0.7em;
+		border-radius: 1em;
+		font-weight: 600;
+		z-index: 2;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+	}
+	.fp-allegato-badge-pdf { background: #e30613; }
+	.fp-allegato-badge-video { background: #28a745; }
+	.fp-allegato-badge-img { background: #007bff; }
+	.fp-allegato-thumb-box { position: relative; display: inline-block; margin: 0.5em 1em 0.5em 0; cursor: pointer; }
+	.fp-allegato-thumb-icon {
+		position: absolute;
+		bottom: 8px;
+		right: 8px;
+		background: rgba(0,0,0,0.65);
+		color: #fff;
+		border-radius: 50%;
+		padding: 0.2em 0.3em;
+		font-size: 1.2em;
+		pointer-events: none;
+	}
+	.fp-allegato-tooltip {
+		position: absolute;
+		left: 50%;
+		top: -2.2em;
+		transform: translateX(-50%);
+		background: #222;
+		color: #fff;
+		font-size: 0.95em;
+		padding: 0.3em 0.8em;
+		border-radius: 0.5em;
+		white-space: nowrap;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.18s;
+		z-index: 10;
+	}
+	.fp-allegato-thumb-box:hover .fp-allegato-tooltip {
+		opacity: 1;
+	}
+	/* Modal allegato */
+	.fp-modal-allegato .modal-dialog { max-width: 700px; }
+	.fp-modal-allegato .modal-body { text-align: center; background: #f4f7fa; }
+	.fp-modal-allegato img, .fp-modal-allegato video, .fp-modal-allegato object { max-width: 100%; max-height: 70vh; border-radius: 1em; }
+</style>
+
 <div class="main-container">
 	@if (Model.Sinistro == null)
 	{
@@ -11,140 +232,257 @@
 	}
 	else
 	{
-		<h1 class="mb-4">@ViewData["Title"]</h1>
-
-		<div class="sinistro-card mb-4">
-			<div class="row mb-2">
-				<div class="col-label">HistoryCallId</div>
-				<div class="col-value">@Model.Sinistro.HistoryCallId</div>
+		<div class="fp-header-sticky d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-0">
+			<div class="d-flex align-items-center gap-2">
+				<a asp-page="/Sinistri" class="btn btn-primary btn-sm me-2">
+					<i class="bi bi-arrow-left"></i> Torna alla lista
+				</a>
+				<span class="h3 mb-0"><i class="bi bi-folder2-open"></i> Dettaglio Sinistro</span>
+				@if (Model.Sinistro.Gestita)
+				{
+					<span class="fp-badge"><i class="bi bi-check-circle"></i> Gestita</span>
+				}
+				else
+				{
+					<span class="fp-badge fp-badge-rosso"><i class="bi bi-x-circle"></i> Non gestita</span>
+				}
 			</div>
-			<div class="row mb-2">
-				<div class="col-label">Numero</div>
-				<div class="col-value">@Model.Sinistro.Numero</div>
-			</div>
-			<div class="row mb-2">
-				<div class="col-label">Nome</div>
-				<div class="col-value">@Model.Sinistro.Nome</div>
-			</div>
-			<div class="row mb-2">
-				<div class="col-label">Cognome</div>
-				<div class="col-value">@Model.Sinistro.Cognome</div>
-			</div>
-			<div class="row mb-2">
-				<div class="col-label">Targa</div>
-				<div class="col-value">@Model.Sinistro.Targa</div>
-			</div>
-			<div class="row mb-2">
-				<div class="col-label">Data Chiamata</div>
-				<div class="col-value">@Model.Sinistro.DataChiamata.ToString("dd/MM/yyyy HH:mm")</div>
-			</div>
-			<div class="row mb-2">
-				<div class="col-label">Gestita</div>
-				<div class="col-value">@((Model.Sinistro.Gestita) ? "✓" : "No")</div>
-			</div>
-			<div class="row mb-2">
-				<div class="col-label">Allegati</div>
-				<div class="col-value">@((Model.Sinistro.HasAllegati) ? "✓" : "No")</div>
-			</div>
-			<div class="row mb-2">
-				<div class="col-label">Trascrizione</div>
-				<div class="col-value testo-lungo">@Model.Sinistro.Trascrizione</div>
-			</div>
-			<div class="row mb-2">
-				<div class="col-label">Riassunto</div>
-				<div class="col-value testo-lungo">@Model.Sinistro.Riassunto</div>
-			</div>
-			<div class="row mb-2">
-				<div class="col-label">Evento</div>
-				<div class="col-value testo-lungo">@Model.Sinistro.Evento</div>
-			</div>
-			<div class="row mb-2">
-				<div class="col-label">Assistenza</div>
-				<div class="col-value">@Model.Sinistro.Assistenza</div>
-			</div>
-			<div class="row mb-2">
-				<div class="col-label">Proposta AI</div>
-				<div class="col-value testo-lungo">@Model.Sinistro.PropostaAI</div>
-			</div>
-			<div class="row mb-2">
-				<div class="col-label">Selezione Utente</div>
-				<div class="col-value testo-lungo">@Model.Sinistro.SelezioneUtente</div>
-			</div>
+			@if (Model.Sinistro.Gestita && Model.OperatoreChiusuraEmail != null && Model.Sinistro.DataChiusura != null)
+			{
+				<div class="mt-2 mt-md-0 px-3 py-2 rounded border border-primary bg-white text-primary fw-bold shadow-sm" style="font-size:1rem;">
+					<i class="bi bi-person-check"></i> Chiuso da <b>@Model.OperatoreChiusuraEmail</b> il @Model.Sinistro.DataChiusura?.ToString("dd/MM/yyyy HH:mm")
+				</div>
+			}
 		</div>
 
-		@if (Model.Attachments.Any())
-		{
-			<h2>Allegati</h2>
-			<form method="post" asp-page-handler="DownloadSelected" class="mb-3">
-				<input type="hidden" name="id" value="@Model.Sinistro.TranscriptionResultId" />
-				<div class="row g-3">
-					@foreach (var a in Model.Attachments)
+		<div class="fp-glass mb-3">
+			<div class="fp-section-title" data-bs-toggle="collapse" data-bs-target="#collapseDati" aria-expanded="true" aria-controls="collapseDati">
+				<i class="bi bi-info-circle fp-collapse-icon"></i> Dati sinistro
+			</div>
+			<div class="collapse show" id="collapseDati">
+				<div class="accordion-body">
+					<div class="row mb-2">
+						<div class="col-md-6 mb-2"><b>HistoryCallId:</b> @Model.Sinistro.HistoryCallId</div>
+						<div class="col-md-6 mb-2"><b>Numero:</b> @Model.Sinistro.Numero</div>
+						<div class="col-md-6 mb-2"><b>Nome:</b> @Model.Sinistro.Nome</div>
+						<div class="col-md-6 mb-2"><b>Cognome:</b> @Model.Sinistro.Cognome</div>
+						<div class="col-md-6 mb-2"><b>Targa:</b> @Model.Sinistro.Targa</div>
+						<div class="col-md-6 mb-2"><b>Data chiamata:</b> @Model.Sinistro.DataChiamata.ToString("dd/MM/yyyy HH:mm")</div>
+						<div class="col-md-6 mb-2"><b>Allegati:</b> @Html.Raw((Model.Sinistro.HasAllegati ? "<span class='text-success'>✓</span>" : "<span class='text-danger'>No</span>"))</div>
+						<div class="col-md-6 mb-2"><b>Assistenza:</b> @Model.Sinistro.Assistenza</div>
+						<div class="col-md-6 mb-2"><b>Selezione Utente:</b> @Model.Sinistro.SelezioneUtente</div>
+					</div>
+					<div class="row mt-3">
+						<div class="col-12 mb-2"><b>Evento:</b><br /><span class="text-secondary">@Model.Sinistro.Evento</span></div>
+						<div class="col-12 mb-2"><b>Riassunto:</b><br /><span class="text-secondary">@Model.Sinistro.Riassunto</span></div>
+						<div class="col-12 mb-2"><b>Trascrizione:</b><br /><span class="text-secondary">@Model.Sinistro.Trascrizione</span></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="fp-glass mb-3">
+			<div class="fp-section-title" data-bs-toggle="collapse" data-bs-target="#collapseStato" aria-expanded="true" aria-controls="collapseStato">
+				<i class="bi bi-clipboard-check fp-collapse-icon"></i> Stato e nota di chiusura
+			</div>
+			<div class="collapse show" id="collapseStato">
+				<div class="accordion-body">
+					@if (Model.Sinistro.Gestita)
 					{
-						<div class="col-12 col-md-6">
-							<div class="card shadow-sm h-100">
-								<div class="card-body d-flex flex-column">
-									<div class="mb-2 text-truncate fw-bold">@a.Name</div>
-
-									@switch (a.Extension)
-									{
-										case "jpg":
-										case "jpeg":
-										case "png":
-										case "gif":
-											<img src="@Url.Page("/SinistroDetail", "Download", new { id = Model.Sinistro.TranscriptionResultId, fileName = a.Name })"
-												 class="img-fluid rounded mb-2" style="max-height:150px;" />
-											break;
-
-										case "pdf":
-											<object data="@Url.Page("/SinistroDetail", "Download", new { id = Model.Sinistro.TranscriptionResultId, fileName = a.Name })"
-													type="application/pdf"
-													class="mb-2"
-													style="width:100%;height:150px;">
-												<p>Anteprima non disponibile.</p>
-											</object>
-											break;
-
-										case "mp4":
-											<video controls
-												   src="@Url.Page("/SinistroDetail", "Download", new { id = Model.Sinistro.TranscriptionResultId, fileName = a.Name })"
-												   class="mb-2" style="max-height:150px;width:100%;"></video>
-											break;
-
-										default:
-											<div class="mb-2"><i class="bi bi-file-earmark-text"></i> Tipo non previewabile</div>
-											;
-											break;
-									}
-
-									<div class="mt-auto d-flex justify-content-between align-items-center">
-										<div>
-											<input type="checkbox" name="selected" value="@a.Name" />
-											<label class="small mb-0">Seleziona</label>
-										</div>
-										<a asp-page-handler="Download"
-										   asp-route-id="@Model.Sinistro.TranscriptionResultId"
-										   asp-route-fileName="@a.Name"
-										   class="btn btn-sm btn-outline-primary">
-											<i class="bi bi-download"></i>
-										</a>
-									</div>
-								</div>
-							</div>
+						<div class="fp-note-master mb-2">
+							<div class="mb-1"><i class="bi bi-lock"></i> <b>Nota di chiusura</b></div>
+							<div>@Model.Sinistro.NoteOp</div>
 						</div>
 					}
+					else
+					{
+						<form method="post" asp-page-handler="SaveNotaOperatore">
+							<input type="hidden" name="id" value="@Model.Sinistro.TranscriptionResultId" />
+							<div class="form-check form-switch mb-3">
+								<input class="form-check-input" type="checkbox" name="Gestita" value="true" id="gestitaSwitch" @(Model.Sinistro.Gestita ? "checked" : "") onchange="document.getElementById('notaChiusuraBox').style.display = this.checked ? 'block' : 'none';" />
+								<label class="form-check-label" for="gestitaSwitch">Segna come gestita</label>
+							</div>
+							<div id="notaChiusuraBox" style="display:none;">
+								<label class="form-label fw-bold">Nota di chiusura <span class="text-danger">*</span></label>
+								<textarea name="NoteOp" class="form-control mb-3" rows="3" placeholder="Scrivi la nota di chiusura..." required></textarea>
+							</div>
+							<button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Salva stato</button>
+						</form>
+						<script>
+							document.addEventListener('DOMContentLoaded', function() {
+								var gestita = document.getElementById('gestitaSwitch');
+								var box = document.getElementById('notaChiusuraBox');
+								if (gestita && gestita.checked) box.style.display = 'block';
+							});
+						</script>
+					}
 				</div>
-
-				<button type="submit" class="btn btn-firstpoint mt-3">
-					<i class="bi bi-download"></i> Scarica selezionati
-				</button>
-			</form>
-		}
-		else
-		{
-			<div class="alert alert-secondary">Nessun allegato presente.</div>
-		}
-	}
-
+			</div>
+		</div>
+		<div class="fp-glass mb-3">
+			<div class="fp-section-title" data-bs-toggle="collapse" data-bs-target="#collapseNote" aria-expanded="true" aria-controls="collapseNote">
+				<i class="bi bi-chat-dots fp-collapse-icon"></i> Storico note operatore
+			</div>
+			<div class="collapse show" id="collapseNote">
+				<div class="accordion-body">
+					@if (Model.NoteStoriche.Any())
+					{
+						<ul class="list-group fp-note-list mb-3">
+							@foreach (var nota in Model.NoteStoriche)
+							{
+								<li class="list-group-item">
+									<div class="d-flex justify-content-between align-items-center">
+										<div>
+											<span class="fw-bold">@nota.OperatoreNome</span>
+											<span class="fp-note-meta">@nota.DataCreazione.ToString("dd/MM/yyyy HH:mm")</span>
+											@if (nota.Testo.StartsWith("[CHIUSURA]"))
+											{
+												<span class="fp-note-chiusura ms-2">Nota di chiusura</span>
+											}
+										</div>
+										@if (!nota.Testo.StartsWith("[CHIUSURA]") && (User.Identity?.Name == nota.OperatoreNome || User.IsInRole("Admin")))
+										{
+											<button type="button" class="btn btn-sm fp-btn-rosso" data-bs-toggle="modal" data-bs-target="#modalEliminaNota-@nota.Id"><i class="bi bi-trash"></i></button>
+											<!-- Modal conferma -->
+											<div class="modal fade" id="modalEliminaNota-@nota.Id" tabindex="-1" aria-labelledby="modalLabel-@nota.Id" aria-hidden="true">
+												<div class="modal-dialog modal-dialog-centered">
+													<div class="modal-content">
+														<div class="modal-header">
+															<h5 class="modal-title" id="modalLabel-@nota.Id">Conferma eliminazione</h5>
+															<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+														</div>
+														<div class="modal-body">
+															Sei sicuro di voler eliminare questa nota?<br />
+															<span class="text-danger small">Questa azione è irreversibile.</span>
+														</div>
+														<div class="modal-footer">
+															<form method="post" asp-page-handler="EliminaNotaStorica">
+																<input type="hidden" name="id" value="@Model.Sinistro.TranscriptionResultId" />
+																<input type="hidden" name="notaId" value="@nota.Id" />
+																<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+																<button type="submit" class="btn fp-btn-rosso">Elimina</button>
+															</form>
+														</div>
+													</div>
+												</div>
+											</div>
+										}
+									</div>
+									<div class="mt-2">@nota.Testo</div>
+								</li>
+							}
+						</ul>
+					}
+					else
+					{
+						<div class="alert alert-secondary">Nessuna nota storica presente.</div>
+					}
+					<form method="post" asp-page-handler="AggiungiNotaStorica">
+						<input type="hidden" name="id" value="@Model.Sinistro.TranscriptionResultId" />
+						<div class="mb-3">
+							<label class="form-label">Aggiungi una nuova nota</label>
+							<textarea name="NuovaNotaStorica" class="form-control" rows="2" placeholder="Scrivi una nota..."></textarea>
+						</div>
+						<button type="submit" class="btn btn-outline-primary"><i class="bi bi-plus-circle"></i> Aggiungi nota</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="fp-glass mb-3">
+			<div class="fp-section-title" data-bs-toggle="collapse" data-bs-target="#collapseAllegati" aria-expanded="true" aria-controls="collapseAllegati">
+				<i class="bi bi-paperclip fp-collapse-icon"></i> Allegati
+			</div>
+			<div class="collapse show" id="collapseAllegati">
+				<div class="accordion-body">
+					<!-- Upload allegati (disattivato, lasciato come commento per futuro) -->
+					@* 
+					<form id="allegatiForm" method="post" enctype="multipart/form-data" asp-page-handler="UploadAllegati" asp-route-id="@Model.Sinistro.TranscriptionResultId">
+						<div class="mb-3 p-3 border rounded bg-light text-center"
+							 ondrop="handleDrop(ev)" ondragover="allowDrop(ev)">
+							<label for="allegatiInput" class="form-label fw-bold">Trascina qui i file o clicca per selezionare</label>
+							<input type="file" id="allegatiInput" name="allegati" multiple class="form-control" style="display:inline-block;max-width:300px;" />
+						</div>
+						<button type="submit" class="btn btn-outline-primary mb-3"><i class="bi bi-upload"></i> Carica allegati</button>
+					</form>
+					*@
+					<!-- Ordinamento -->
+					@{
+						var sort = Request.Query["sort"].ToString() ?? "nome";
+					}
+					<form id="sortForm" method="get">
+						<input type="hidden" name="id" value="@Model.Sinistro.TranscriptionResultId" />
+						<div class="mb-2 d-flex align-items-center gap-2">
+							<label class="form-label mb-0">Ordina per:</label>
+							<select id="sortAllegati" name="sort" class="form-select form-select-sm" style="width:auto;display:inline-block;" onchange="document.getElementById('sortForm').submit();">
+								@if (sort == "nome")
+								{
+									<option value="nome" selected>Nome</option>
+									<option value="data">Data</option>
+								}
+								else
+								{
+									<option value="nome">Nome</option>
+									<option value="data" selected>Data</option>
+								}
+							</select>
+						</div>
+					</form>
+					<!-- Download multiplo -->
+					<form method="post" asp-page-handler="DownloadSelected" asp-route-id="@Model.Sinistro.TranscriptionResultId" id="downloadSelectedForm">
+						<div class="d-flex flex-wrap align-items-center">
+							@foreach (var a in Model.GetSortedAttachments(sort ?? "nome"))
+							{
+								var ext = a.Extension.ToLower();
+								var isImg = ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "gif";
+								var isPdf = ext == "pdf";
+								var isVideo = ext == "mp4";
+								var lightboxUrl = isImg
+									? Url.Page("/SinistroDetail", "Download", new { id = Model.Sinistro.TranscriptionResultId, fileName = a.Name })
+									: isPdf
+										? Url.Page("/SinistroDetail", "Download", new { id = Model.Sinistro.TranscriptionResultId, fileName = a.Name, preview = true })
+										: isVideo
+											? Url.Page("/SinistroDetail", "Download", new { id = Model.Sinistro.TranscriptionResultId, fileName = a.Name })
+											: null;
+								var lightboxType = isImg ? "image" : isPdf ? "iframe" : isVideo ? "video" : null;
+								<div class="fp-allegato-thumb-box" tabindex="0" data-filename="@a.Name" data-type="@ext" style="cursor:pointer;">
+									<input type="checkbox" name="selected" value="@a.Name" class="form-check-input position-absolute" style="top:2px;right:2px;z-index:3;" onclick="event.stopPropagation();" />
+									<span class="fp-allegato-tooltip">Clicca per ingrandire</span>
+									@if (isImg)
+									{
+										<span class="fp-allegato-badge fp-allegato-badge-img">IMG</span>
+										<a href="@lightboxUrl" class="glightbox" data-gallery="allegati" data-type="image" title="@a.Name">
+											<img src="@lightboxUrl" class="fp-allegato-thumb" alt="@a.Name" />
+										</a>
+									}
+									else if (isPdf)
+									{
+										<span class="fp-allegato-badge fp-allegato-badge-pdf">PDF</span>
+										<a href="@lightboxUrl" class="glightbox" data-gallery="allegati" data-type="iframe" title="@a.Name">
+											<canvas class="fp-allegato-thumb pdf-thumb" data-pdf-url="@lightboxUrl" width="90" height="90" style="background:#f8f9fa;"></canvas>
+										</a>
+									}
+									else if (isVideo)
+									{
+										<span class="fp-allegato-badge fp-allegato-badge-video">VIDEO</span>
+										<a href="@lightboxUrl" class="glightbox" data-gallery="allegati" data-type="video" title="@a.Name">
+											<img src="/images/video-icon.svg" class="fp-allegato-thumb video-thumb-static" alt="Video" />
+											<video src="@lightboxUrl" class="fp-allegato-thumb video-thumb-preview d-none" muted loop playsinline style="object-fit:cover;"></video>
+										</a>
+									}
+									else
+									{
+										<span class="fp-allegato-badge">FILE</span>
+										<div class="fp-allegato-thumb d-flex align-items-center justify-content-center bg-light text-secondary">
+											<i class="bi bi-file-earmark-text" style="font-size:2em;"></i>
+										</div>
+									}
+								</div>
+							}
+						</div>
+						<button type="submit" class="btn btn-success mt-2"><i class="bi bi-archive"></i> Scarica selezionati</button>
+					</form>
+				</div>
+			</div>
+		</div>
 
 		<div class="mb-4">
 			<!-- Export a livello di dettaglio -->
@@ -161,8 +499,48 @@
 				Esporta PDF
 			</a>
 		</div>
-
-		<div>
-			<a asp-page="/Sinistri" class="btn btn-firstpoint">← Torna alla lista</a>
-		</div>
+	}
 </div>
+
+<script>
+// Drag&drop upload allegati
+function handleDrop(ev) {
+	ev.preventDefault();
+	ev.stopPropagation();
+	const files = ev.dataTransfer.files;
+	document.getElementById('allegatiInput').files = files;
+	document.getElementById('allegatiForm').submit();
+}
+function allowDrop(ev) { ev.preventDefault(); }
+</script>
+
+<script>
+// Ordinamento allegati lato client
+const sortSelect = document.getElementById('sortAllegati');
+sortSelect?.addEventListener('change', function() {
+	const val = this.value;
+	// Qui puoi implementare ordinamento lato client se vuoi
+	// oppure lasciare che il backend ordini già la lista
+});
+</script>
+
+<!-- GLightbox JS -->
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	const lightbox = GLightbox({
+		selector: '.glightbox',
+		touchNavigation: true,
+		loop: false,
+		closeButton: true,
+		zoomable: true,
+		autoplayVideos: true
+	});
+	// Ferma la propagazione del click sul checkbox
+	document.querySelectorAll('.fp-allegato-thumb-box .form-check-input').forEach(function(checkbox) {
+		checkbox.addEventListener('click', function(e) {
+			e.stopPropagation();
+		});
+	});
+});
+</script>

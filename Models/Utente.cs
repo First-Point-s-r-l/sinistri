@@ -8,7 +8,7 @@ namespace UfficioSinistri.Models
 
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
         public string? PasswordHash { get; set; }
 

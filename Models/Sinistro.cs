@@ -22,6 +22,9 @@ namespace UfficioSinistri.Models
         public string? Assistenza { get; set; }
         public string? PropostaAI { get; set; }
         public string? SelezioneUtente { get; set; }
+        public Guid? OperatoreId { get; set; }
+        public string? NoteOp { get; set; }
+        public DateTime? DataChiusura { get; set; }
 
         // Lista di allegati
         public ICollection<Allegato> Allegati { get; set; } = [];
