@@ -66,6 +66,8 @@ namespace UfficioSinistri.Pages
         [BindProperty]
         public IFormFile[]? allegati { get; set; }
 
+        public string? AudioFileName { get; set; }
+
         public async Task CaricaNoteStoricheAsync(Guid sinistroId)
         {
             NoteStoriche.Clear();
@@ -162,6 +164,11 @@ namespace UfficioSinistri.Pages
                         FullPath = path,
                         Extension = Path.GetExtension(path).TrimStart('.').ToLowerInvariant()
                     })];
+                    // Cerca file audio
+                    var audioName = Sinistro.TranscriptionResultId + ".wav";
+                    var audioPath = Path.Combine(folder, audioName);
+                    if (System.IO.File.Exists(audioPath))
+                        AudioFileName = audioName;
                 }
                 else
                 {
@@ -173,6 +180,7 @@ namespace UfficioSinistri.Pages
             else
             {
                 Attachments = [];
+                AudioFileName = null;
             }
 
             await CaricaNoteStoricheAsync(id.Value);
@@ -190,10 +198,34 @@ namespace UfficioSinistri.Pages
                 return NotFound();
 
             var mime = GetMime(fileName);
-            var bytes = System.IO.File.ReadAllBytes(full);
+            var ext = Path.GetExtension(fileName).ToLowerInvariant();
             var cd = preview ? null : fileName; // se preview, non forzare download
             if (preview)
                 Response.Headers.ContentDisposition = $"inline; filename=\"{fileName}\"";
+
+            // Supporto Range solo per audio (wav)
+            if (ext == ".wav" && Request.Headers.TryGetValue("Range", out Microsoft.Extensions.Primitives.StringValues value))
+            {
+                var fileInfo = new FileInfo(full);
+                var totalLength = fileInfo.Length;
+                var rangeHeader = value.ToString();
+                // Esempio: Range: bytes=12345-
+                var range = rangeHeader.Replace("bytes=", "").Split('-');
+                if (long.TryParse(range[0], out var start))
+                {
+                    var end = range.Length > 1 && long.TryParse(range[1], out var e) ? e : totalLength - 1;
+                    var length = end - start + 1;
+                    Response.StatusCode = 206; // Partial Content
+                    Response.Headers.ContentRange = $"bytes {start}-{end}/{totalLength}";
+                    Response.Headers.AcceptRanges = "bytes";
+                    Response.Headers["Content-Length"] = length.ToString();
+                    var fs = new FileStream(full, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    fs.Seek(start, SeekOrigin.Begin);
+                    return File(fs, mime);
+                }
+            }
+            // Default: restituisci tutto il file
+            var bytes = System.IO.File.ReadAllBytes(full);
             return File(bytes, mime, cd);
         }
 

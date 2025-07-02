@@ -276,6 +276,29 @@
 						<div class="col-12 mb-2"><b>Evento:</b><br /><span class="text-secondary">@Model.Sinistro.Evento</span></div>
 						<div class="col-12 mb-2"><b>Riassunto:</b><br /><span class="text-secondary">@Model.Sinistro.Riassunto</span></div>
 						<div class="col-12 mb-2"><b>Trascrizione:</b><br /><span class="text-secondary">@Model.Sinistro.Trascrizione</span></div>
+						@if (Model.AudioFileName != null)
+						{
+							<div class="col-12 mb-2">
+								<label class="form-label fw-bold">Audio chiamata originale</label>
+								<audio id="audioPlayer" class="plyr" controls style="width:100%;max-width:400px;">
+									<source src="@Url.Page("/SinistroDetail", "Download", new { id = Model.Sinistro.TranscriptionResultId, fileName = Model.AudioFileName })" type="audio/wav" />
+									Il tuo browser non supporta l'audio.
+								</audio>
+								<a class="btn btn-outline-secondary btn-sm mt-2" href="@Url.Page("/SinistroDetail", "Download", new { id = Model.Sinistro.TranscriptionResultId, fileName = Model.AudioFileName })">
+									<i class="bi bi-download"></i> Scarica audio
+								</a>
+							</div>
+							<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+							<script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+							<script>
+							document.addEventListener('DOMContentLoaded', function () {
+								const player = new Plyr('#audioPlayer', {
+									controls: ['play', 'progress', 'current-time', 'mute'],
+									seekTime: 5
+								});
+							});
+							</script>
+						}
 					</div>
 				</div>
 			</div>
