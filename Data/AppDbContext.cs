@@ -14,6 +14,8 @@ namespace UfficioSinistri.Data
 
         public DbSet<Allegato> Allegati { get; set; }
 
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
