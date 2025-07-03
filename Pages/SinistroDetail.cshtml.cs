@@ -151,24 +151,31 @@ namespace UfficioSinistri.Pages
             }
 
             // Solo se il flag HasAllegati è true vado a guardare sulla cartella
-            if (Sinistro != null && Sinistro.HasAllegati)
+            if (Sinistro != null)
             {
                 var folder = Path.Combine(@"C:\ImmaginiSinistri", id.Value.ToString());
+
                 if (Directory.Exists(folder))
                 {
-                    Attachments = [.. Directory
-                    .EnumerateFiles(folder)
-                    .Select(path => new FileAttachment
-                    {
-                        Name = Path.GetFileName(path),
-                        FullPath = path,
-                        Extension = Path.GetExtension(path).TrimStart('.').ToLowerInvariant()
-                    })];
                     // Cerca file audio
                     var audioName = Sinistro.TranscriptionResultId + ".wav";
                     var audioPath = Path.Combine(folder, audioName);
                     if (System.IO.File.Exists(audioPath))
                         AudioFileName = audioName;
+
+                    // Cerca allegati, escludendo l'audio
+                    if (Sinistro.HasAllegati)
+                    {
+                        Attachments = [.. Directory
+                .EnumerateFiles(folder)
+                .Where(path => Path.GetFileName(path) != audioName) // <-- qui escludi l'audio
+                .Select(path => new FileAttachment
+                {
+                    Name = Path.GetFileName(path),
+                    FullPath = path,
+                    Extension = Path.GetExtension(path).TrimStart('.').ToLowerInvariant()
+                })];
+                    }
                 }
                 else
                 {
